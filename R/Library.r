@@ -85,10 +85,10 @@
 # library(growthrates)
 
 
-# options(scipen = 999) # options(scipen = 0)
+options(scipen = 999) # options(scipen = 0)
 # options(digits=2)
-# #options(warn=1) # to display warnings as they occur
-# #last.warning
+options(warn=1) # to display warnings as they occur
+last.warning
 
 ##########################################################################################################################################################################################################################
 cleanfunction <- function(dataframe) {
@@ -896,9 +896,9 @@ print(end_time_all - start_time_all)
 # d1[] <- lapply(names(d1), function(x) {factor(x, levels=levels(d2[,x]))
 #                                       })
 
-setwd("C:/Users/tomki/Documents/Dropbox/PhD/Proposal/Data/2) Working Data/R Code/WVS_US_Elec")
+# setwd("C:/Users/tomki/Documents/Dropbox/PhD/Proposal/Data/2) Working Data/R Code/WVS_US_Elec")
 
-save.session(file="Lib.RSession")
+# save.session(file="Lib.RSession")
 
 
 # restore.session(file="Data_Merge.RData")
