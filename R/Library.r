@@ -1,89 +1,8 @@
-# ##########################################################################################################################################################################################################################
-# # Libraries & Functions ###
-# ##########################################################################################################################################################################################################################
-# library(session)
-# setwd("C:/Users/tomki/Documents/Dropbox/PhD/Proposal/Data/2) Working Data/R Code/WVS_US_Elec")
-
-# # remove.packages(c("sjmisc", "session", "stargazer", "ivmodel", "doBy", "fitdistrplus". "logspline", "countrycode", "readxl", "foreign", "haven", "stringr", "glmnet", "sjlabelled", "zoo"
-# # , "randomForest", "Hmisc", "checkmate", "dummies", "visdat", "ggplot2", "GGally", "VGAM", "censReg", "mice", "jomo" "pryr", "ff", "AER", "car","openxlsx",
-# # "bbmle", "modelr", "plm" "lavaan", "data.table", "tidyverse"))
-
-# #install.packages('sjmisc', dependencies = TRUE)
-# #install.packages('session', dependencies = TRUE)
-# #install.packages('stargazer', dependencies = TRUE)
-# #install.packages('ivmodel', dependencies = TRUE)
-# #install.packages('doBy', dependencies = TRUE)
-# #install.packages('fitdistrplus', dependencies = TRUE)
-# #install.packages('logspline', dependencies = TRUE)
-# #install.packages('countrycode', dependencies = TRUE)
-# #install.packages('readxl', dependencies = TRUE)
-# #install.packages('foreign', dependencies = TRUE)
-# #install.packages('haven', dependencies = TRUE)
-# #install.packages('stringr', dependencies = TRUE)
-# #install.packages('glmnet', dependencies = TRUE)
-# #install.packages('sjlabelled', dependencies = TRUE)
-# #install.packages('zoo', dependencies = TRUE)
-# #install.packages('randomForest', dependencies = TRUE)
-# #install.packages('Hmisc', dependencies = TRUE)
-# #install.packages("checkmate", dependencies = TRUE)
-# #install.packages('dummies', dependencies = TRUE)
-# #install.packages('visdat', dependencies = TRUE)
-# #install.packages('ggplot2', dependencies = TRUE)
-# #install.packages('GGally', dependencies = TRUE)
-# #install.packages('VGAM', dependencies = TRUE)
-# #install.packages('censReg', dependencies = TRUE)
-# #install.packages('mice', dependencies = TRUE)
-# #install.packages("jomo", dependencies = TRUE)
-# #install.packages('pryr', dependencies = TRUE)
-# #install.packages('ff', dependencies = TRUE)
-# #install.packages('AER', dependencies = TRUE)
-# #install.packages("car", dependencies = TRUE)
-# #install.packages("openxlsx", dependencies = TRUE)
-# #install.packages('bbmle', dependencies = TRUE)
-# #install.packages('modelr', dependencies = TRUE)
-# #install.packages('plm', dependencies = TRUE)
-# #install.packages('lavaan', dependencies = TRUE)
-# #install.packages('data.table', dependencies = TRUE)
-# #install.packages('tidyverse', dependencies = TRUE)
-# # IfIgocrazythenwillyoustillcallmesuperman?
-
-# library(session)
-# # restore.session(file="Data_Merged.RSession")
-
-# library(sjmisc)
-# library(stargazer)
-# library(doBy)
-# library(ivmodel)
-# library(fitdistrplus)
-# library(logspline)
-# library(countrycode)
-# library(readxl)
-# library(foreign)
-# library(haven)
-# library(stringr)
-# library(glmnet)
-# library(sjlabelled)
-# library(zoo)
-# library(randomForest)
-# library(Hmisc)
-# library(dummies)
-# library(visdat)
-# library(ggplot2)
-# library(GGally)
-# library(VGAM)
-# library(censReg)
-# library(mice)
-# library(pryr)
-# library(ff)
-# library(AER)
-# library(bbmle)
-# library(modelr)
-# library(plm)
-# library(lavaan)
-# library(data.table)
-# library(tidyverse)
-# library(growthrates)
-
+usethis::use_package("data.table") # Default is "Imports"
+usethis::use_package("tidyr") # Default is "Imports"
+usethis::use_package("stringi") # Default is "Imports"
+usethis::use_package("dplyr") # Default is "Imports"
+usethis::use_package("fuzzyjoin") # Default is "Imports"
 
 options(scipen = 999) # options(scipen = 0)
 # options(digits=2)
@@ -180,8 +99,6 @@ overview2 <- function(DT, corvar=NULL) { # , Group=NULL
 }
 
 as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
-# WVSpanelpdf$Yearofbirth_cat3int <- factor(WVSpanelpdf$Yearofbirth_cat3int, ordered = TRUE, levels = c("1", "2", "3"))
-
 
 deltavar_overview <- function(DT, panelID, corvar=NULL) { # , Group=NULL
   # Melt - Take differences - Cast                                        # https://stackoverflow.com/questions/57406654/speeding-up-a-function/57407959#57407959
@@ -245,7 +162,6 @@ rbindlistfun <- function(df1, df2) {
 }
 
 is.haven <- function(x) "labelled" %in% class(x) # filteredES1 <- Filter(is.haven, ES1)
-
 
 get_var_corr<- function (df, comparison_var, other_vars = NULL, get_all = TRUE,
                          method= "pearson",...) {
