@@ -28,9 +28,9 @@ table_maker <- function(table_in, strata_in = NULL) {
       lowers <- unique(name_vec$lower)
       uppers <- unique(name_vec$upper)
 
-      categories <- setDT(data.frame(categories))
-      lowers <- setDT(data.frame(lowers))
-      uppers <- setDT(data.frame(uppers))
+      categories <- data.table(data.frame(categories))
+      lowers <- data.table(data.frame(lowers))
+      uppers <- data.table(data.frame(uppers))
 
       categories <- setorder(categories, categories)
       lowers <- setorder(lowers, lowers)
@@ -42,7 +42,7 @@ table_maker <- function(table_in, strata_in = NULL) {
 
       out <- rbind(rep(lowers, each = length(categories)), rep(uppers, each = length(categories)))
 
-      if (!is.na(categories)) {
+      if (!is.na(categories[1])) {
           colnames(out) <- rep(c(categories), length.out = ncol(out))
           row.names(out) <- c('lower threshold', 'upper threshold')
           # https://stackoverflow.com/questions/62960127/convert-column-names-into-first-row-of-data-frame-in-r
@@ -53,7 +53,7 @@ table_maker <- function(table_in, strata_in = NULL) {
               out <- data.frame(out)
               # out[out=="1000000"]<-"Infinity"
               names(out) <- apply(out, 2, paste0, collapse="_")
-              out <- setDT(out, keep.rownames = TRUE)[]
+              out <- data.table(out, keep.rownames = TRUE)[]
 
           } else {
               lastrow <- colnames(out)
@@ -62,7 +62,7 @@ table_maker <- function(table_in, strata_in = NULL) {
               out <- data.frame(out)
               # out[out=="1000000"]<-"Infinity"
               names(out) <- apply(out, 2, paste0, collapse="_")
-              out <- setDT(out, keep.rownames = TRUE)[]
+              out <- data.table(out, keep.rownames = TRUE)[]
           }
       } else {
           row.names(out) <- c('lower threshold', 'upper threshold')
@@ -71,7 +71,7 @@ table_maker <- function(table_in, strata_in = NULL) {
           out <- setNames(rbind(firstrow, out), names(out))
           out <- data.frame(out)
                   names(out) <- apply(out, 2, paste0, collapse="_")
-          out <- setDT(out, keep.rownames = TRUE)[]
+          out <- data.table(out, keep.rownames = TRUE)[]
       }
 
       out
@@ -110,7 +110,7 @@ table_maker <- function(table_in, strata_in = NULL) {
   table_in <- table_in[order]
 
   # First by category
-  if (!is.na(categories)) {
+  if (!is.na(categories[1])) {
       category_order <- word(names(table_in), -1)
       category_order <- order(category_order)
       table_in <- table_in[category_order]
@@ -122,7 +122,7 @@ table_maker <- function(table_in, strata_in = NULL) {
   table_in$Sum_table_in <- rowSums(table_in)
 
   # Convert to data.table (data.table does not support rownames)
-  table_in <- setDT(table_in, keep.rownames = TRUE)[]
+  table_in <- data.table(table_in, keep.rownames = TRUE)[]
 
   if (is.null(strata_in)) {
       table_in$strata <- reporting_strata_categories$strata
@@ -134,7 +134,7 @@ table_maker <- function(table_in, strata_in = NULL) {
   # Add lists of frequencies
 
   ###############################################
-  if (!is.na(categories)) {
+  if (!is.na(categories[1])) {
   frequency_table <- table_in %>%
     pivot_longer(cols = -c(rn, strata, Sum_table_in),
     names_to = c("lower", "upper", "direction"),
@@ -208,7 +208,7 @@ table_maker <- function(table_in, strata_in = NULL) {
   frequency_table_out <- frequency_table[,c("rn", "freq", "colspan")]
 
   moveMeDataTable <-function(data, tomove, where = "last", ba = NULL) {
-    data <- setDT(data)
+    data <- data.table(data)
     temp <- setdiff(names(data), tomove)
     x <- switch(
       where,
@@ -230,13 +230,12 @@ table_maker <- function(table_in, strata_in = NULL) {
     x
   }
 
-  if (!is.na(categories)){
+  if (!is.na(categories[1])){
       # Adapt
       all_categories <- gsub("_"," ", names(thresholds_strata))
       all_categories_1 <- word(all_categories, -1)
       all_category_order <- order(all_categories_1)
-      thresholds_cat <- setDT(thresholds_cat)[, ..all_category_order]
-
+      thresholds_cat <- data.table(thresholds_cat)[, ..all_category_order]
       thresholds_cat <- moveMeDataTable(thresholds_cat, "rn", "first")
       sum_categories <- vector()
       for (i in seq_along(categories)) {
@@ -299,7 +298,7 @@ table_maker <- function(table_in, strata_in = NULL) {
       theme_box()
 
   # FIX INDEX
-  if (!is.na(categories)) {
+  if (!is.na(categories[1])) {
       flextable_out$body$spans$rows[4:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(spans), ncol = ncol(combined), byrow = TRUE)
   } else {
       flextable_out$body$spans$rows[3:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(spans), ncol = ncol(combined), byrow = TRUE)    
