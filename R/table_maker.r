@@ -208,7 +208,7 @@ table_maker <- function(table_in, strata_in = NULL) {
   frequency_table_out <- frequency_table[,c("rn", "freq", "colspan")]
 
   moveMeDataTable <-function(data, tomove, where = "last", ba = NULL) {
-    data <- setDT(data)
+    data <- data.table(data)
     temp <- setdiff(names(data), tomove)
     x <- switch(
       where,
