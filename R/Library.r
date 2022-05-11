@@ -19,7 +19,7 @@ cleanfunction <- function(dataframe) {
   ## identify columns that needs be coerced to factors
   ind1 <- which(var_mode %in% c("logical", "character"))
   ## coerce logical / character to factor with `as.factor`
-  if (length(ind1)) dataframe[, c(ind1) := lapply(.SD, as.factor), .SDcols = ind1]
+  if (length(ind1)) setDT(dataframe)[, c(ind1) := lapply(.SD, as.factor), .SDcols = ind1]
   return(dataframe)
 }
 
