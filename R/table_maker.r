@@ -233,6 +233,7 @@ table_maker <- function(table_in, strata_in = NULL) {
   if (!is.na(categories)){
       # Adapt
       all_categories <- gsub("_"," ", names(thresholds_strata))
+      all_categories <- data.frame(all_categories)
       all_categories <- setDT(all_categories)
       all_categories_1 <- word(all_categories, -1)
       all_category_order <- order(all_categories_1)
