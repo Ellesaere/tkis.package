@@ -23,7 +23,24 @@ cleanfunction <- function(dataframe) {
   return(dataframe)
 }
 
-
+cleanfunction_DT <- function(dataframe) {
+  setDT(dataframe)
+  ## get mode of all vars
+  var_mode <- sapply(dataframe, mode)
+  ## produce error if complex or raw is found
+  if (any(var_mode %in% c("complex", "raw"))) stop("complex or raw not allowed!")
+  ## get class of all vars
+  var_class <- sapply(dataframe, class)
+  ## produce error if an "AsIs" object has "logical" or "character" mode
+  if (any(var_mode[var_class == "AsIs"] %in% c("logical", "character"))) {
+      stop("matrix variables with 'AsIs' class must be 'numeric'")
+      }
+  ## identify columns that needs be coerced to factors
+  ind1 <- which(var_mode %in% c("logical", "character"))
+  ## coerce logical / character to factor with `as.factor`
+  if (length(ind1)) dataframe[, c(ind1) := lapply(.SD, as.factor), .SDcols = ind1]
+  return(dataframe)
+}
 
 overview <- function(df) {
   df <- as.data.frame(df)
