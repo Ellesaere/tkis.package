@@ -238,7 +238,7 @@ table_maker <- function(table_in, strata_in = NULL) {
       all_categories_1 <- word(all_categories, -1)
       all_category_order <- order(all_categories_1)
       all_categories <- all_categories[all_category_order]
-      thresholds_cat <- setDT(thresholds_cat)[, ..all_category_order]
+      thresholds_cat <- thresholds_cat[, all_category_order]
       thresholds_cat <- moveMeDataTable(thresholds_cat, "rn", "first")
       sum_categories <- vector()
       for (i in seq_along(categories)) {
