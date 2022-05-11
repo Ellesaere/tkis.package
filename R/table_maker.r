@@ -1,9 +1,11 @@
-################################################################################################################################################################
-###  Create tables #############################################################################################################################################
-################################################################################################################################################################
 table_maker <- function(table_in, strata_in = NULL) {
 
-  ### Table formatting #########################################################################################################################################
+usethis::use_package("flextable") # Default is "Imports"
+usethis::use_package("data.table") # Default is "Imports"
+usethis::use_package("tidyr") # Default is "Imports"
+usethis::use_package("stringi") # Default is "Imports"
+usethis::use_package("dplyr") # Default is "Imports"
+
   set_flextable_defaults(
       font.size = 10, font.family = "Helvetica",
       text.align = "center",
@@ -13,14 +15,15 @@ table_maker <- function(table_in, strata_in = NULL) {
       # padding.left = 4, padding.right = 4
       )
 
-  ### Check whether categories are present in table_in ##########################################################################################################
+  # Check for categories
   name_vec <- names(table_in)
   name_vec <- data.frame(name_vec)
   name_vec <- name_vec %>%
       tidyr::extract(name_vec, c('lower', 'upper', 'rest'), '(\\d+),(\\d+)[\\]\\)]\\s*(\\w*)', convert = TRUE)
+
   categories <- unique(name_vec$rest)
 
-  # Make thresholds for the data #################################################################################################################################
+  # Make thresholds
   thresholds_maker <- function(table_in, by_cat=FALSE) {
       # name_vec <- names(table_in)
       # name_vec <- data.frame(name_vec)
@@ -119,7 +122,7 @@ table_maker <- function(table_in, strata_in = NULL) {
       table_in <- table_in[category_order]
   }
 
-#   category_order <- word(names(thresholds), 1)
+  category_order <- word(names(thresholds_strata), 1)
   ############################################################################
   # total observations/population per category
   table_in$Sum_table_in <- rowSums(table_in)
@@ -168,7 +171,7 @@ table_maker <- function(table_in, strata_in = NULL) {
   ##########################################################################################
 
   # Numerical values for reference
-  x <- as.numeric(unique(unlist(thresholds)))
+  x <- as.numeric(unique(unlist(thresholds_strata)))
   unique_num_values <- x[!is.na(x)]
   unique_num_values <- sort(unique_num_values)
   total_colspan <- c(unique_num_values, "SUM")
@@ -188,25 +191,14 @@ table_maker <- function(table_in, strata_in = NULL) {
   frequency_table$l <- l
   frequency_table$l <- lapply(frequency_table$l, \(x) diff(x) + 1)
 
-  # if (length(frequency_table$freq[[1]]) > length(total_colspan)) {
-  #     frequency_table$l <- lapply(frequency_table$l, \(x){
-  #         # Only if enough values in freq
-  #         # Needs to be changed if categories are not four
-  #         x <- append(x,rep(x,length(categories)))
-  #     })
-  #     x
-  # }
-
-  frequency_table$l <- lapply(frequency_table$l, \(x){
-      if (length(frequency_table$freq[[1]]) > length(total_colspan)) {
+  if (length(frequency_table$freq[[1]]) > length(total_colspan)) {
+      frequency_table$l <- lapply(frequency_table$l, \(x){
           # Only if enough values in freq
           # Needs to be changed if categories are not four
-          x <- append(x,x)
-          x <- append(x,x)
-      } 
-      x
-  })
-
+          x <- append(x,rep(x,length(categories)-1))
+          x
+      })
+  }
 
   html_table_in <- frequency_table[1:2] %>% 
       unnest_longer(freq) %>% 
@@ -264,8 +256,6 @@ table_maker <- function(table_in, strata_in = NULL) {
       thresholds_cat[,"Sum"] <- "Sum"
   }
 
-
-
   out <- map(1:nrow(frequency_table), function(index){
       out <- data.frame("freq" = frequency_table$freq[[index]], 
                           "span" = frequency_table$colspan[[index]]) %>% 
@@ -321,6 +311,6 @@ table_maker <- function(table_in, strata_in = NULL) {
       flextable_out$body$spans$rows[3:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(spans), ncol = ncol(combined), byrow = TRUE)    
   }
   flextable_out <- align(flextable_out, align = "center", part = "all")
-
+  set_table_properties(flextable_out, layout = "autofit")
   return(flextable_out)
 }
