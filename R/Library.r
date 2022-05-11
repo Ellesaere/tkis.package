@@ -2,6 +2,7 @@
 options(scipen = 999) # options(scipen = 0)
 # options(digits=2)
 
+#' @export
 ##########################################################################################################################################################################################################################
 cleanfunction <- function(dataframe) {
   dataframe <- as.data.frame(dataframe)
@@ -22,6 +23,8 @@ cleanfunction <- function(dataframe) {
   return(dataframe)
 }
 
+
+#' @export
 overview <- function(df) {
   df <- as.data.frame(df)
   labels <- setNames(stack(lapply(df, label))[2:1], c("Varcode", "Description")) # Get labels
@@ -48,6 +51,7 @@ overview <- function(df) {
   return(obs)
 }
 
+#' @export
 overview2 <- function(DT, corvar=NULL) { # , Group=NULL
   # Melt - Take differences - Cast                                        # https://stackoverflow.com/questions/57406654/speeding-up-a-function/57407959#57407959
   DT <- as.data.table(DT)                                                 # Make sure it is a data.table 
@@ -93,8 +97,10 @@ overview2 <- function(DT, corvar=NULL) { # , Group=NULL
   return(obs)
 }
 
+#' @export
 as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
 
+#' @export
 deltavar_overview <- function(DT, panelID, corvar=NULL) { # , Group=NULL
   # Melt - Take differences - Cast                                        # https://stackoverflow.com/questions/57406654/speeding-up-a-function/57407959#57407959
   DT <- as.data.table(DT)                                                 # Make sure it is a data.table 
@@ -151,13 +157,16 @@ deltavar_overview <- function(DT, panelID, corvar=NULL) { # , Group=NULL
   return(obs)
 }
 
+#' @export
 rbindlistfun <- function(df1, df2) {
   x <- rbindlist(list(df1, df2), fill=TRUE, use.names=TRUE)
   return (x)
 }
 
+#' @export
 is.haven <- function(x) "labelled" %in% class(x) # filteredES1 <- Filter(is.haven, ES1)
 
+#' @export
 get_var_corr<- function (df, comparison_var, other_vars = NULL, get_all = TRUE,
                          method= "pearson",...) {
   columns <- setdiff(names(df), comparison_var)
@@ -210,15 +219,18 @@ get_var_corr<- function (df, comparison_var, other_vars = NULL, get_all = TRUE,
     }
 }
 
+#' @export
 first_preds <- function(dat, predictor) {
   cols <- which(dat[predictor, ] == 1)
   names(dat)[cols]
 }
 
+#' @export
 all_preds <- function(dat, predictors) {
   unique(unlist(lapply(predictors, function(x) names(dat)[which(dat[x, ] == 1 )])))
 }
 
+#' @export
 labelfun <- function(targetdf, sourcedf=ES1obs, columnlab=Variables, columnvar=var)
 for (i in seq_len(ncol(targetdf))) { 
     label(targetdf[[i]]) <-  sourcedf$columnlab[match(names(targetdf)[i], sourcedf$columnvar)] 
@@ -228,12 +240,13 @@ for (i in seq_len(ncol(targetdf))) {
 
 # https://stackoverflow.com/questions/57101282/a-function-for-referring-to-columns-by-either-name-or-index/57101418?noredirect=1#comment100723955_57101418
 
-
+#' @export
 removeWords <- function(str, stopwords) {
   x <- unlist(strsplit(str, " "))
   paste(x[!x %in% stopwords], collapse = " ")
 }
 
+#' @export
 moveMeDataTable <-function(data, tomove, where = "first", ba = NULL) {
   data <- setDT(data)
   suppressWarnings(nums <- as.numeric(tomove))
@@ -263,6 +276,7 @@ moveMeDataTable <-function(data, tomove, where = "first", ba = NULL) {
   x
 }
 
+#' @export
 moveMeDataTable <-function(data, tomove, where = "last", ba = NULL) {
   data <- setDT(data)
   temp <- setdiff(names(data), tomove)
@@ -286,7 +300,7 @@ moveMeDataTable <-function(data, tomove, where = "last", ba = NULL) {
   x
 }
 
-
+#' @export
 reform <- function(x) paste(x, collapse = " + ")
 makeFo <- function(lhs, rhs1, rhs2 = NULL, env = parent.frame()) {
   s <- sprintf("%s ~ %s", lhs, reform(c(rhs1, rhs2)))
@@ -300,10 +314,12 @@ makeFo("y", c("x1", "x2"))
 makeFo("y", c("x1", "x2"), c("u1", "u2"))
 ## y ~ x1 + x2 + u1 + u2 | u1 + u2
 
+#' @export
 var_select <- function(...){
   as.character(as.list(match.call()[-1L]))
 }
 
+#' @export
 debug_contr_error <- function (dat, subset_vec = NULL) {
   if (!is.null(subset_vec)) {
     ## step 0
@@ -351,6 +367,7 @@ debug_contr_error <- function (dat, subset_vec = NULL) {
   list(nlevels = nl, levels = lev)
   }
 
+#' @export
 ## note: this function relies on `debug_contr_error`
 debug_contr_error2 <- function (form, dat, subset_vec = NULL) {
   ## step 0
@@ -381,6 +398,7 @@ debug_contr_error2 <- function (form, dat, subset_vec = NULL) {
   c(list(mf = dat_internal), debug_contr_error(dat_internal, NULL))
   }
 
+#' @export
 NA_preproc <- function (dat) {
   for (j in 1:ncol(dat)) {
     x <- dat[[j]]
@@ -392,6 +410,7 @@ NA_preproc <- function (dat) {
 
 # https://stackoverflow.com/questions/64442511/writing-code-function-that-matches-column-names-by-highest-similarity/64483921#64483921
 
+#' @export
 fuzzy_rowbind <- function(a, b, method = "cosine", max_dist = 0.9999) {
   a_name_df <- tibble(name = names(a))
   b_name_df <- tibble(name = names(b))
@@ -429,10 +448,12 @@ fuzzy_rowbind <- function(a, b, method = "cosine", max_dist = 0.9999) {
   bind_rows(a, b_renamed)
 }
 
+#' @export
 fuzzy_rowbind_all <- function(l) {
   last(accumulate(l, fuzzy_rowbind))
 }
 
+#' @export
 formula <- function(depvar, exogenous=NULL, instruments=NULL, instrumentedvar=NULL, othervars=NULL, type=NULL) {
 if (is.null(type) || type == "lm") {
 	exogenous <- unique(exogenous)                          # Checks if there are no doubles in the independent variables
@@ -569,7 +590,7 @@ return(formula)
 #         exogenous <- exogenous[!exogenous %in% depvar]          # Checks if the dependent variable is not present in exogenous
 #         exogenous <- exogenous[!exogenous %in% instruments]     # Checks if the instrument is not present in exogenous
 #         # print("form = depvar ~ exogenous + instruments")
-#         rhs <- c(as.character(exogenous), as.character(instruments))
+#         rhs <- c(as.character(exogenouss), as.character(instruments))
 #         rhs <- rhs[!rhs %in% instrumentedvar]
 #         formula <- as.formula(paste(depvar, paste(rhs, collapse = " + "), sep = " ~ "))
 #   } 
