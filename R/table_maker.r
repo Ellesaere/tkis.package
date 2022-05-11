@@ -1,11 +1,5 @@
 table_maker <- function(table_in, strata_in = NULL) {
 
-usethis::use_package("flextable") # Default is "Imports"
-usethis::use_package("data.table") # Default is "Imports"
-usethis::use_package("tidyr") # Default is "Imports"
-usethis::use_package("stringi") # Default is "Imports"
-usethis::use_package("dplyr") # Default is "Imports"
-
   set_flextable_defaults(
       font.size = 10, font.family = "Helvetica",
       text.align = "center",

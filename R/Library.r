@@ -1,8 +1,3 @@
-usethis::use_package("data.table") # Default is "Imports"
-usethis::use_package("tidyr") # Default is "Imports"
-usethis::use_package("stringi") # Default is "Imports"
-usethis::use_package("dplyr") # Default is "Imports"
-usethis::use_package("fuzzyjoin") # Default is "Imports"
 
 options(scipen = 999) # options(scipen = 0)
 # options(digits=2)

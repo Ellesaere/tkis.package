@@ -1,2 +1,11 @@
 Package: tkis.package
 Version: 0.1
+Description: setwd("C:/Two Drive/OneDrive/Coding/R_scripts/tkis.package") to build()
+Imports:
+    dplyr,
+    tidyr,
+	data.table,
+	flextable,
+	stringi,
+	fuzzyjoin
+	

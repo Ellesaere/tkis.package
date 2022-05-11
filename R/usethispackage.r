@@ -1,0 +1,6 @@
+usethis::use_package("data.table") # Default is "Imports"
+usethis::use_package("tidyr") # Default is "Imports"
+usethis::use_package("stringi") # Default is "Imports"
+usethis::use_package("dplyr") # Default is "Imports"
+usethis::use_package("fuzzyjoin") # Default is "Imports"
+usethis::use_package("flextable") # Default is "Imports"
