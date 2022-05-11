@@ -4,7 +4,8 @@ options(scipen = 999) # options(scipen = 0)
 
 ##########################################################################################################################################################################################################################
 cleanfunction <- function(dataframe) {
-  dataframe <- as.data.frame(dataframe)
+  # https://stackoverflow.com/questions/71912122/applying-a-function-to-all-data-frames-in-the-environment
+  setDT(dataframe)
   ## get mode of all vars
   var_mode <- sapply(dataframe, mode)
   ## produce error if complex or raw is found
@@ -13,12 +14,12 @@ cleanfunction <- function(dataframe) {
   var_class <- sapply(dataframe, class)
   ## produce error if an "AsIs" object has "logical" or "character" mode
   if (any(var_mode[var_class == "AsIs"] %in% c("logical", "character"))) {
-    stop("matrix variables with 'AsIs' class must be 'numeric'")
-    }
+      stop("matrix variables with 'AsIs' class must be 'numeric'")
+      }
   ## identify columns that needs be coerced to factors
   ind1 <- which(var_mode %in% c("logical", "character"))
   ## coerce logical / character to factor with `as.factor`
-  dataframe[ind1] <- lapply(dataframe[ind1], as.factor)
+  if (length(ind1)) dataframe[, c(ind1) := lapply(.SD, as.factor), .SDcols = ind1]
   return(dataframe)
 }
 
