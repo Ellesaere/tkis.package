@@ -8,10 +8,19 @@ Authors@R: c(person("Ellesaere", "Developer", role = c("aut", "cre"),
 Author: Ellesaere Developer [aut, cre]
 Maintainer: Ellesaere Developer <salzjohn0@gmail.com>
 Imports:
-    dplyr,
-    tidyr,
-	data.table,
-	flextable,
-	stringi,
-	fuzzyjoin
-	
+  microbenchmark, 
+  devtools,
+  readxl,
+  writexl,
+  fuzzyjoin, 
+  htmltools, 
+  purrr, 
+  flextable, 
+  glmnet, 
+  stringr,
+  stringi,  
+  magrittr,
+  Hmisc, 
+  tidyr,
+  dplyr,
+  data.table
