@@ -1,5 +1,24 @@
 table_maker <- function(table_in, strata_in = NULL) {
 
+  when_strata_is_null <- structure(list(strata = list(c(0, 25, 100, 250, 500, 1e+06), 
+    c(0, 25, 100, 250, 500, 1e+06), c(0, 25, 100, 250, 500, 1000, 
+    1e+06), c(0, 25, 100, 500, 1000, 1500, 3000, 1e+06), c(0, 
+    25, 100, 500, 1000, 1500, 3000, 1e+06), c(0, 25, 100, 500, 
+    1000, 1500, 3000, 1e+06), c(0, 25, 100, 500, 1000, 1e+06), 
+    c(0, 25, 100, 250, 500, 1e+06), c(0, 25, 100, 500, 1000, 
+    1e+06), c(0, 25, 100, 500, 1000, 1e+06), c(0, 25, 100, 500, 
+    1000, 1e+06), c(0, 25, 100, 250, 500, 1e+06), c(0, 25, 100, 
+    250, 500, 1000, 1e+06), c(0, 25, 100, 500, 1000, 1e+06), 
+    c(0, 25, 100, 250, 500, 1000, 1e+06), c(0, 25, 50, 100, 250, 
+    500, 1e+06), c(0, 25, 100, 250, 500, 1000, 1e+06), c(0, 25, 
+    100, 250, 500, 1000, 1e+06), c(0, 25, 100, 250, 500, 1000, 
+    1e+06), c(0, 25, 100, 500, 1000, 1e+06), c(0, 25, 100, 500, 
+    1000, 1e+06), c(0, 25, 100, 500, 1000, 1e+06), c(0, 25, 100, 
+    250, 500, 1e+06)), test = c("A", "B", "C", "D", "E", "F", 
+    "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", 
+    "T", "U", "V", "W")), row.names = c(NA, -23L), class = c("tbl_df", 
+    "tbl", "data.frame"))
+
   set_flextable_defaults(
       font.size = 10, font.family = "Helvetica",
       text.align = "center",
@@ -111,12 +130,12 @@ table_maker <- function(table_in, strata_in = NULL) {
 
   # First by category
   if (!is.na(categories[1])) {
-      category_order <- word(names(table_in), -1)
+      category_order <- stringr::word(names(table_in), -1)
       category_order <- order(category_order)
       table_in <- table_in[category_order]
   }
 
-  category_order <- word(names(thresholds_strata), 1)
+  category_order <- stringr::word(names(thresholds_strata), 1)
   ############################################################################
   # total observations/population per category
   table_in$Sum_table_in <- rowSums(table_in)
@@ -125,10 +144,8 @@ table_maker <- function(table_in, strata_in = NULL) {
   table_in <- data.table(table_in, keep.rownames = TRUE)[]
 
   if (is.null(strata_in)) {
-      table_in$strata <- reporting_strata_categories$strata
+      table_in$strata <- when_strata_is_null$strata
   }
-
-  table_in$strata <- reporting_strata_categories$strata
 
   is_all_na <- function(x)all(is.na(x))
   # Add lists of frequencies
@@ -160,7 +177,7 @@ table_maker <- function(table_in, strata_in = NULL) {
     summarise(freq = list(freq))
   }
 
-  frequency_table$strata <- reporting_strata_categories$strata
+  frequency_table$strata <- when_strata_is_null$strata
   frequency_table$strata_list_for_tabel <- frequency_table$strata
   ##########################################################################################
 
@@ -233,7 +250,7 @@ table_maker <- function(table_in, strata_in = NULL) {
   if (!is.na(categories[1])){
       # Adapt
       all_categories <- gsub("_"," ", names(thresholds_strata))
-      all_categories_1 <- word(all_categories, -1)
+      all_categories_1 <- stringr::word(all_categories, -1)
       all_category_order <- order(all_categories_1)
       thresholds_cat <- data.table(thresholds_cat)[, ..all_category_order]
       thresholds_cat <- moveMeDataTable(thresholds_cat, "rn", "first")
