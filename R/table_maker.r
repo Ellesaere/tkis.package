@@ -1,23 +1,35 @@
 table_maker <- function(table_in, strata_in = NULL) {
 
-  when_strata_is_null <- structure(list(strata = list(c(0, 25, 100, 250, 500, 1e+06), 
-    c(0, 25, 100, 250, 500, 1e+06), c(0, 25, 100, 250, 500, 1000, 
-    1e+06), c(0, 25, 100, 500, 1000, 1500, 3000, 1e+06), c(0, 
-    25, 100, 500, 1000, 1500, 3000, 1e+06), c(0, 25, 100, 500, 
-    1000, 1500, 3000, 1e+06), c(0, 25, 100, 500, 1000, 1e+06), 
-    c(0, 25, 100, 250, 500, 1e+06), c(0, 25, 100, 500, 1000, 
-    1e+06), c(0, 25, 100, 500, 1000, 1e+06), c(0, 25, 100, 500, 
-    1000, 1e+06), c(0, 25, 100, 250, 500, 1e+06), c(0, 25, 100, 
-    250, 500, 1000, 1e+06), c(0, 25, 100, 500, 1000, 1e+06), 
-    c(0, 25, 100, 250, 500, 1000, 1e+06), c(0, 25, 50, 100, 250, 
-    500, 1e+06), c(0, 25, 100, 250, 500, 1000, 1e+06), c(0, 25, 
-    100, 250, 500, 1000, 1e+06), c(0, 25, 100, 250, 500, 1000, 
-    1e+06), c(0, 25, 100, 500, 1000, 1e+06), c(0, 25, 100, 500, 
-    1000, 1e+06), c(0, 25, 100, 500, 1000, 1e+06), c(0, 25, 100, 
-    250, 500, 1e+06)), test = c("A", "B", "C", "D", "E", "F", 
-    "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", 
-    "T", "U", "V", "W")), row.names = c(NA, -23L), class = c("tbl_df", 
-    "tbl", "data.frame"))
+# English Names and Strata
+when_strata_in_is_null <- list(
+  "Starch potatoes" = c(0, 25, 100, 250, 500, 1000000),
+  "Organic crops" = c(0, 25, 100, 250, 500, 1000000),
+  "Other field crops (non-organic)" = c(0, 25, 100, 250, 500,1000, 1000000),
+  "Vegetables under glass" = c(0, 25, 100, 500, 1000, 1500, 3000, 1000000),
+  "Plants under glass" = c(0, 25, 100, 500, 1000, 1500, 3000, 1000000),
+  "Flowers under glass" = c(0, 25, 100, 500, 1000, 1500, 3000, 1000000),
+  "Field vegetables" = c(0, 25, 100, 500, 1000, 1000000),
+  "Fruit" = c(0, 25, 100, 250, 500, 1000000),
+  "Tree nursery" = c(0, 25, 100, 500, 1000, 1000000),
+  "Flower bulbs" = c(0, 25, 100, 500, 1000, 1000000),
+  "Other horticulture" = c(0, 25, 100, 500, 1000, 1000000),
+  "Dairy (organic)" = c(0, 25, 100, 250, 500, 1000000),
+  "Dairy (non-organic)" = c(0, 25, 100, 250, 500,1000, 1000000),
+  "Calf fattening" = c(0, 25, 100, 500, 1000, 1000000),
+  "Goats" = c(0, 25, 100, 250, 500,1000, 1000000),
+  "Other grazing livestock" = c(0, 25, 50,100, 250, 500, 1000000),
+  "Pig rearing" = c(0, 25, 100, 250, 500,1000, 1000000),
+  "Pig fattening" = c(0, 25, 100, 250, 500,1000, 1000000),
+  "Combined pig rearing and fattening" = c(0, 25, 100, 250, 500,1000, 1000000),
+  "Eggs for consumption" = c(0, 25, 100, 500, 1000, 1000000),
+  "Broilers" = c(0, 25, 100, 500, 1000, 1000000),
+  "Other intensive livestock"= c(0, 25, 100, 500, 1000, 1000000),
+  "Combined" = c(0, 25, 100, 250, 500,1000000)
+)
+
+
+when_strata_in_is_null <- tibble::enframe(when_strata_in_is_null, name = "ENG_name", value = "strata")
+
 
   set_flextable_defaults(
       font.size = 10, font.family = "Helvetica",
@@ -30,20 +42,57 @@ table_maker <- function(table_in, strata_in = NULL) {
 
   # Check for categories
   name_vec <- names(table_in)
+  # Remove problematic characters 'Löss'
+  name_vec <- iconv(name_vec, to='ASCII//TRANSLIT') 
+
   name_vec <- data.frame(name_vec)
+  
   name_vec <- name_vec %>%
       tidyr::extract(name_vec, c('lower', 'upper', 'rest'), '(\\d+),(\\d+)[\\]\\)]\\s*(\\w*)', convert = TRUE)
 
+  name_vec_lower <- unique(name_vec$lower)
+  name_vec_upper <- unique(name_vec$upper)
   categories <- unique(name_vec$rest)
+
+  name_vec_lower <- sort(name_vec_lower)
+  name_vec_upper <- sort(name_vec_upper)
+  categories <- sort(categories)
+  categories <- append(categories, "Unknown")
+  categories <- str_to_title(categories)
+  # [1] "Klei"    "Loss"    "Veen"    "Zand"    "Unknown"
+
+    # Add missing categories
+
+    # namevector <- c("rn", "[0,25) klei", "[25,50) klei", "[25,100) klei", "[50,100) klei", 
+    # "[100,250) klei", "[100,500) klei", "[250,500) klei", "[500,1000) klei", 
+    # "[1000,1500) klei", "[1500,3000) klei", "[500,1000000] klei", 
+    # "[1000,1000000] klei", "[3000,1000000] klei", "[0,25) Loss", 
+    # "[25,50) Loss", "[25,100) Loss", "[50,100) Loss", "[100,250) Loss", 
+    # "[100,500) Loss", "[250,500) Loss", "[500,1000) Loss", "[500,1000000] Loss", 
+    # "[1000,1000000] Loss", "[0,25) NA", "[25,50) NA", "[25,100) NA", 
+    # "[50,100) NA", "[100,250) NA", "[100,500) NA", "[250,500) NA", 
+    # "[500,1000) NA", "[1000,1500) NA", "[1500,3000) NA", "[500,1000000] NA", 
+    # "[1000,1000000] NA", "[3000,1000000] NA", "[0,25) veen", "[25,50) veen", 
+    # "[25,100) veen", "[50,100) veen", "[100,250) veen", "[100,500) veen", 
+    # "[250,500) veen", "[500,1000) veen", "[1000,1500) veen", "[1500,3000) veen", 
+    # "[500,1000000] veen", "[1000,1000000] veen", "[3000,1000000] veen", 
+    # "[0,25) zand", "[25,50) zand", "[25,100) zand", "[50,100) zand", 
+    # "[100,250) zand", "[100,500) zand", "[250,500) zand", "[500,1000) zand", 
+    # "[1000,1500) zand", "[1500,3000) zand", "[500,1000000] zand", 
+    # "[1000,1000000] zand", "[3000,1000000] zand", "Sum_table_in", 
+    # "strata")
+    add_name_vector <- c("[3000,1000000] Loss", "[1000,1500) Loss", "[1500,3000) Loss")
+    table_in[ , add_name_vector] <- 0
 
   # Make thresholds
   thresholds_maker <- function(table_in, by_cat=FALSE) {
-      # name_vec <- names(table_in)
-      # name_vec <- data.frame(name_vec)
-      # name_vec <- name_vec %>%
-      #     tidyr::extract(name_vec, c('lower', 'upper', 'rest'), '(\\d+),(\\d+)[\\]\\)]\\s*(\\w*)', convert = TRUE)
+      name_vec <- names(table_in)
+      name_vec <- iconv(name_vec, to='ASCII//TRANSLIT') 
+      name_vec <- data.frame(name_vec)
+      name_vec <- name_vec %>%
+          tidyr::extract(name_vec, c('lower', 'upper', 'rest'), '(\\d+),(\\d+)[\\]\\)]\\s*(\\w*)', convert = TRUE)
 
-      # categories <- unique(name_vec$rest)
+      categories <- unique(name_vec$rest)
       lowers <- unique(name_vec$lower)
       uppers <- unique(name_vec$upper)
 
@@ -73,7 +122,6 @@ table_maker <- function(table_in, strata_in = NULL) {
               # out[out=="1000000"]<-"Infinity"
               names(out) <- apply(out, 2, paste0, collapse="_")
               out <- data.table(out, keep.rownames = TRUE)[]
-
           } else {
               lastrow <- colnames(out)
               out <- setNames(rbind(out,lastrow), names(out))
@@ -125,6 +173,7 @@ table_maker <- function(table_in, strata_in = NULL) {
       order()
 
   }
+
   order <- order_cols(table_in)
   table_in <- table_in[order]
 
@@ -135,7 +184,7 @@ table_maker <- function(table_in, strata_in = NULL) {
       table_in <- table_in[category_order]
   }
 
-  category_order <- stringr::word(names(thresholds_strata), 1)
+  category_order_sorted_by_strata <- stringr::word(names(thresholds_strata), 1)
   ############################################################################
   # total observations/population per category
   table_in$Sum_table_in <- rowSums(table_in)
@@ -144,20 +193,24 @@ table_maker <- function(table_in, strata_in = NULL) {
   table_in <- data.table(table_in, keep.rownames = TRUE)[]
 
   if (is.null(strata_in)) {
-      table_in$strata <- when_strata_is_null$strata
+      table_in <- merge(table_in, when_strata_in_is_null, all.x=TRUE, by.x="rn", by.y="ENG_name")
   }
 
   is_all_na <- function(x)all(is.na(x))
-  # Add lists of frequencies
-
-  ###############################################
+  
+  # Add lists of frequencies ###############################################
   if (!is.na(categories[1])) {
-  frequency_table <- table_in %>%
+    frequency_table <- table_in %>%
     pivot_longer(cols = -c(rn, strata, Sum_table_in),
     names_to = c("lower", "upper", "direction"),
     names_pattern = "\\[(\\d+),(\\d+)[\\)\\]]\\s+(\\S+$)",
-      values_drop_na = TRUE) %>% 
+      values_drop_na = TRUE) 
+      
+    frequency_table$direction <- gsub("NA", "Unknown", frequency_table$direction, ignore.case = TRUE, perl = FALSE, fixed = FALSE, useBytes = FALSE)
+  
+    frequency_table <- frequency_table %>% 
     type.convert(as.is = TRUE) %>% 
+    select(-where(is_all_na)) %>%
     group_by(rn, direction) %>%
     filter(lower%in%strata[[1]] & upper %in% strata[[1]]) %>%
     group_by(upper,.add = TRUE) %>%   
@@ -165,7 +218,7 @@ table_maker <- function(table_in, strata_in = NULL) {
     group_modify(~add_row(.,freq = sum(.$freq))) %>% group_by(rn) %>%
     summarise(freq = list(freq), .groups = "drop")
   } else {
-  frequency_table <- table_in %>%
+    frequency_table <- table_in %>%
     pivot_longer(-c(rn, strata)) %>%
     tidyr::extract(name, c('lower', 'upper', 'rest'), '(\\d+),(\\d+)[\\]\\)]\\s*(\\w*)', convert = TRUE)  %>% 
     select(-where(is_all_na)) %>%
@@ -177,20 +230,22 @@ table_maker <- function(table_in, strata_in = NULL) {
     summarise(freq = list(freq))
   }
 
-  frequency_table$strata <- when_strata_is_null$strata
-  frequency_table$strata_list_for_tabel <- frequency_table$strata
+  frequency_table <- merge(frequency_table, when_strata_in_is_null, all.x=TRUE, by.x="rn", by.y="ENG_name")
+ 
   ##########################################################################################
+  # Calculate standard colspan
 
-  # Numerical values for reference
+  oldw <- getOption("warn")
+  options(warn = -1)
+
   x <- as.numeric(unique(unlist(thresholds_strata)))
+  options(warn = oldw)
   unique_num_values <- x[!is.na(x)]
   unique_num_values <- sort(unique_num_values)
   total_colspan <- c(unique_num_values, "SUM")
   total_colspan <- gsub(1000000, "Infinity", total_colspan, fixed = T)
 
-  # total_colspan = c(0, 25, 50, 100, 250, 500, 1000, 1500, 3000, "Infinity")
-
-  frequency_table$strata_list_for_tabel <- lapply(frequency_table$strata_list_for_tabel, \(x){
+  frequency_table$strata <- lapply(frequency_table$strata, \(x){
       # x <- append(x, c("SUM"))
       x <- gsub(1000000, "Infinity", x, fixed = T)
       x <- append(x, c("SUM"))
@@ -198,7 +253,7 @@ table_maker <- function(table_in, strata_in = NULL) {
   })
 
   # Index differences
-  l <- lapply(frequency_table$strata_list_for_tabel, \(y) sapply(y, \(x) which(total_colspan == x) - which(y == x)))
+  l <- lapply(frequency_table$strata, \(y) sapply(y, \(x) which(total_colspan == x) - which(y == x)))
   frequency_table$l <- l
   frequency_table$l <- lapply(frequency_table$l, \(x) diff(x) + 1)
 
@@ -210,6 +265,19 @@ table_maker <- function(table_in, strata_in = NULL) {
           x
       })
   }
+
+
+# FOR TESTING
+# temp <- frequency_table$rn 
+# for (i in seq_along(  temp  )   ) {
+#     print(frequency_table$rn[[i]])
+#     print(  length( frequency_table$freq[[i]]   )   )
+#     print(  length( frequency_table$l[[i]]  )   )
+# }
+
+# length(unlist(frequency_table$l[[23]])) # = 755
+# length(unlist(frequency_table$freq[[23]])) # = 749
+
 
   html_table_in <- frequency_table[1:2] %>% 
       unnest_longer(freq) %>% 
@@ -287,17 +355,6 @@ table_maker <- function(table_in, strata_in = NULL) {
       mutate(across(everything(),  ~as.character(.))) %>% 
       bind_rows(out) 
 
-  # spans <- frequency_table$colspan[[1]] %>%  
-  # as_tibble() %>% 
-  # mutate(idx = row_number()) %>% 
-  # tidyr::uncount(value, .remove = F) %>% 
-  # group_by(idx) %>%
-  # mutate(pos = 1:n(),
-  #         value = ifelse(pos != 1, 0, value)) %>% 
-  # ungroup() %>% 
-  # select(value) %>% 
-  # t
-
   spans <- map(1:length(frequency_table$colspan), function(index){
       spans <- frequency_table$colspan[[index]] %>%  
       as_tibble() %>% 
@@ -321,7 +378,19 @@ table_maker <- function(table_in, strata_in = NULL) {
   } else {
       flextable_out$body$spans$rows[3:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(spans), ncol = ncol(combined), byrow = TRUE)    
   }
+  
   flextable_out <- align(flextable_out, align = "center", part = "all")
-  set_table_properties(flextable_out, layout = "autofit")
+
+  FitFlextableToPage <- function(ft, pgwidth = 6){
+
+    ft_out <- ft %>% autofit()
+
+    ft_out <- width(ft_out, width = dim(ft_out)$widths*pgwidth /(flextable_dim(ft_out)$widths))
+    return(ft_out)
+  }
+
+  # set_table_properties(flextable_out, layout = "autofit")
+  flextable_out <- FitFlextableToPage(flextable_out, pgwidth = 6)
+
   return(flextable_out)
 }

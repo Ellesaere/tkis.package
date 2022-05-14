@@ -470,8 +470,10 @@ fuzzy_rowbind_all <- function(l) {
   last(accumulate(l, fuzzy_rowbind))
 }
 
+# Fuzzy merge a column with a list
+# https://stackoverflow.com/questions/71866485/fuzzy-joining-a-column-with-a-list
 
-formula <- function(depvar, exogenous=NULL, instruments=NULL, instrumentedvar=NULL, othervars=NULL, type=NULL) {
+make_formula <- function(depvar, exogenous=NULL, instruments=NULL, instrumentedvar=NULL, othervars=NULL, type=NULL) {
 if (is.null(type) || type == "lm") {
 	exogenous <- unique(exogenous)                          # Checks if there are no doubles in the independent variables
 	exogenous <- exogenous[!exogenous %in% depvar]          # Checks if the dependent variable is not present in exogenous
