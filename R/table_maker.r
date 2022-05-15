@@ -1,10 +1,10 @@
 table_maker <- function(table_in, strata_in = NULL) {
 
     # FOR TESTING
-
+    # table_in <- table_lbt_input
     # table_in <- table_lbt_cat_reg_input
     # table_in <- table_lbt_cat_soil_input
-    # table_in <- table_lbt_input
+ 
 
     is_all_na <- function(x)all(is.na(x))
 
@@ -314,7 +314,7 @@ table_maker <- function(table_in, strata_in = NULL) {
         thresholds_cat[,sum_categories] <- NA
         thresholds_cat[ , sapply(.SD, is.character), .SDcols = sum_categories]
         thresholds_cat[ , (sum_categories) := lapply(.SD, as.character), .SDcols = sum_categories]      
-        thresholds_cat[3,sum_categories] <- as.data.table(t(mapply(paste, thresholds_cat[3,..sum_categories[1:5]])))
+        thresholds_cat[3,sum_categories] <- as.data.table(t(mapply(paste, thresholds_cat[3,..sum_categories[1:length(categories)]])))
         for (i in seq_along(categories)) {
             # thresholds_cat[3, (sum_categories) := lapply(.SD, function(x) paste0(sum_categories[i]) ), .SDcols = sum_categories]
             thresholds_cat <- moveMeDataTable(data = thresholds_cat, tomove = sum_categories[i], where = "after", ba = paste0( categories[i], "_3000_1000000"))
