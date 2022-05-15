@@ -4,9 +4,11 @@ table_maker <- function(table_in, strata_in = NULL) {
 
     # table_in <- table_lbt_cat_reg_input
     # table_in <- table_lbt_cat_soil_input
+    # table_in <- table_lbt_input
+
     is_all_na <- function(x)all(is.na(x))
 
-    names(table_in)[duplicated(table_in)[]]
+    names(table_in)[duplicated(names(table_in))[]]
 
     names(table_in) = gsub(pattern = "NA*", replacement = "Unknown", x = names(table_in))
     names(table_in) = iconv(names(table_in), to='ASCII//TRANSLIT') 
@@ -75,14 +77,13 @@ table_maker <- function(table_in, strata_in = NULL) {
         }
     }
 
-    names(table_in)[duplicated(table_in)[]]
+    names(table_in)[duplicated(names(table_in))[]]
 
   # Make thresholds
     thresholds_maker <- function(table_in, by_cat=FALSE) {
 
-    out <- rbind(rep(lowers, each = length(categories)), rep(uppers, each = length(categories)))
-
     if (!is.na(categories[1])) {
+        out <- rbind(rep(lowers, each = length(categories)), rep(uppers, each = length(categories)))
         colnames(out) <- rep(c(categories), length.out = ncol(out))
         row.names(out) <- c('lower threshold', 'upper threshold')
         # https://stackoverflow.com/questions/62960127/convert-column-names-into-first-row-of-data-frame-in-r
@@ -104,13 +105,21 @@ table_maker <- function(table_in, strata_in = NULL) {
             out <- data.table(out, keep.rownames = TRUE)[]
         }
       } else {
+          out <- rbind(lowers, uppers)
           row.names(out) <- c('lower threshold', 'upper threshold')
           firstrow <- colnames(out)
           # https://stackoverflow.com/questions/62960127/convert-column-names-into-first-row-of-data-frame-in-r
           out <- setNames(rbind(firstrow, out), names(out))
           out <- data.frame(out)
-                  names(out) <- apply(out, 2, paste0, collapse="_")
+          names(out) <- apply(out, 2, paste0, collapse="_")
           out <- data.table(out, keep.rownames = TRUE)[]
+          names_out <- vector()
+          out <- data.frame(out)
+          for (i in seq_along(out[1,])) {
+              names_out <- append(names_out, paste0('str_', paste0(out[,i])[1], '_', paste0(out[,i])[2],collapse=""))
+          }
+          out <- data.frame(out)
+          names(out) <- names_out
       }
       out
     }
@@ -148,8 +157,7 @@ table_maker <- function(table_in, strata_in = NULL) {
     order <- order_cols(table_in)
     table_in <- table_in[order]
 
-    names(table_in)[duplicated(table_in)[]]
-
+    names(table_in)[duplicated(names(table_in))[]]
 
     # First by category
     if (!is.na(categories[1])) {
