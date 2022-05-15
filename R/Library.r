@@ -2,7 +2,24 @@
 options(scipen = 999) # options(scipen = 0)
 # options(digits=2)
 
+shut_up = function(expr) {
+  #temp file
+  f = file()
 
+  #write output to that file
+  sink(file = f)
+
+  #evaluate expr in original environment
+  y = eval(expr, envir = parent.frame())
+
+  #close sink
+  sink()
+
+  #get rid of file
+  close(f)
+
+  y
+}
 ##########################################################################################################################################################################################################################
 cleanfunction <- function(dataframe) {
   dataframe <- as.data.frame(dataframe)
