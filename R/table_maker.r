@@ -30,14 +30,13 @@ table_maker <- function(table_in, strata_in = NULL) {
         all_combinations <- rbind(rep(present_strata_combinations, each = length(present_categories)))
         all_combinations <- rbind(all_combinations, present_categories)
         all_combinations <- paste0(all_combinations[1,], " ", all_combinations[2,])
-    }
-
-    if (    length(names(table_in)) != length(all_combinations) ) {
+        if (    length(names(table_in)) != length(all_combinations) ) {
         # Add missing categories
         add_name_vector <- all_combinations[all_combinations %nin% names(table_in)]
         for (i in seq_along(add_name_vector)) {
             if (add_name_vector[i] %nin% names(table_in)) {
                 table_in[ , add_name_vector[i]] <- 0
+                }
             }
         }
     }
