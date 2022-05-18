@@ -1,10 +1,11 @@
 table_maker <- function(table_in, strata_in = NULL) {
 
     # FOR TESTING
-    # table_in <- table_lbt_input
+    # table_in <- table_bin_cat_soil_input 
     # table_in <- table_lbt_cat_reg_input
     # table_in <- table_lbt_cat_soil_input
  
+    
 
     is_all_na <- function(x)all(is.na(x))
 
@@ -17,6 +18,26 @@ table_maker <- function(table_in, strata_in = NULL) {
     # Check for categories
     name_vec <- names(table_in)
     name_vec <- data.frame(name_vec)
+
+    if (!is.na(categories[1])) {
+        present_combinations <- str_split(names(table_in), pattern=" ", n = 2, simplify=TRUE)
+        present_strata_combinations <- unique(present_combinations[,1]) # 13
+        present_categories <- unique(present_combinations[,2]) # 5
+
+        all_combinations <- rbind(rep(present_strata_combinations, each = length(present_categories)))
+        all_combinations <- rbind(all_combinations, present_categories)
+        all_combinations <- paste0(all_combinations[1,], " ", all_combinations[2,])
+    }
+
+    if (    length(names(table_in)) != length(all_combinations) ) {
+        # Add missing categories
+        add_name_vector <- all_combinations[all_combinations %nin% names(table_in)]
+        for (i in seq_along(add_name_vector)) {
+            if (add_name_vector[i] %nin% names(table_in)) {
+                table_in[ , add_name_vector[i]] <- 0
+            }
+        }
+    }
 
     name_vec <- name_vec %>%
         tidyr::extract(name_vec, c('lower', 'upper', 'categories'), '(\\d+),(\\d+)[\\]\\)]\\s*(\\w*)', convert = TRUE)
@@ -66,16 +87,6 @@ table_maker <- function(table_in, strata_in = NULL) {
         # padding.top = 3, padding.bottom = 3,
         # padding.left = 4, padding.right = 4
         )
-
-    if ("Loss" %in% categories) {
-        # Add missing categories
-        add_name_vector <- c("[3000,1000000] Loss", "[1000,1500) Loss", "[1500,3000) Loss")
-        for (i in seq_along(add_name_vector)) {
-            if (add_name_vector[i] %nin% names(table_in)) {
-                table_in[ , add_name_vector[i]] <- 0
-            }
-        }
-    }
 
     names(table_in)[duplicated(names(table_in))[]]
 
@@ -241,15 +252,12 @@ table_maker <- function(table_in, strata_in = NULL) {
 
     if (length(frequency_table$freq[[1]]) > length(total_colspan)) {
         frequency_table$l <- lapply(frequency_table$l, \(x){
-            # Only if enough values in freq
-            # Needs to be changed if categories are not four
             x <- append(x,rep(x,length(categories)-1))
             x
         })
     }
 
-
-    # FOR TESTING
+    # # FOR TESTING
     # temp <- frequency_table$rn 
     # for (i in seq_along(  temp  )   ) {
     #     print(frequency_table$rn[[i]])
@@ -261,7 +269,6 @@ table_maker <- function(table_in, strata_in = NULL) {
     # length(unlist(frequency_table$freq[[23]])) # = 749
     # length(unlist(frequency_table$l)) # = 755
     # length(unlist(frequency_table$freq)) # = 749
-
 
     html_table_in <- frequency_table[1:2] %>% 
         unnest_longer(freq) %>% 
