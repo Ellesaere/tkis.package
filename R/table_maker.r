@@ -4,8 +4,6 @@ table_maker <- function(table_in, strata_in = NULL) {
     # table_in <- table_bin_cat_soil_input 
     # table_in <- table_lbt_cat_reg_input
     # table_in <- table_lbt_cat_soil_input
- 
-    
 
     is_all_na <- function(x)all(is.na(x))
 
@@ -18,6 +16,8 @@ table_maker <- function(table_in, strata_in = NULL) {
     # Check for categories
     name_vec <- names(table_in)
     name_vec <- data.frame(name_vec)
+
+    # Adding missing columns that do not show up at all for some categories
 
     if (!is.na(categories[1])) {
         present_combinations <- str_split(names(table_in), pattern=" ", n = 2, simplify=TRUE)
