@@ -242,8 +242,6 @@ table_maker <- function(table_in, strata_in = NULL) {
         x <- append(x, c("SUM"))
         x
     })
-
-    print("8")
     
     # Index differences
     l <- lapply(frequency_table$strata, \(y) sapply(y, \(x) which(total_colspan == x) - which(y == x)))
