@@ -277,8 +277,6 @@ table_maker <- function(table_in, strata_in = NULL) {
         group_by(rn) %>%
         summarise(colspan = list(colspan))
 
-    print("9")
-
     frequency_table <- merge(frequency_table, colspan, by.x="rn", by.y="rn")
 
     frequency_table_out <- frequency_table[,c("rn", "freq", "colspan")]
@@ -306,8 +304,6 @@ table_maker <- function(table_in, strata_in = NULL) {
         x
     }
 
-    print("10")
-
     if (!is.na(categories[1])){
         # Adapt
         all_categories <- gsub("_"," ", names(thresholds_strata))
@@ -317,28 +313,35 @@ table_maker <- function(table_in, strata_in = NULL) {
         thresholds_cat <- data.table(thresholds_cat)
         thresholds_cat <- moveMeDataTable(thresholds_cat, "rn", "first")
         sum_categories <- vector()
-        print("11")
         for (i in seq_along(categories)) {
             sum_categories[i] <- paste0(categories[i], "_sum")
         }
-        print("12")
+        print(dput(sum_categories))
+        print("1")
         thresholds_cat[,sum_categories] <- NA
-        print("13")
+        print("2")
+        print(dput(thresholds_cat))
         thresholds_cat[ , sapply(.SD, is.character), .SDcols = sum_categories]
-        print("14")
+        print("3")
+        print(dput(thresholds_cat))
         thresholds_cat[ , (sum_categories) := lapply(.SD, as.character), .SDcols = sum_categories]      
-        print("15")
+        print("4")
+        print(dput(thresholds_cat))
         thresholds_cat[3,sum_categories] <- as.data.table(t(mapply(paste, thresholds_cat[3,..sum_categories[1:length(categories)]])))
-        print("16")
+        print("5")
+        print(dput(thresholds_cat))
         for (i in seq_along(categories)) {
             # thresholds_cat[3, (sum_categories) := lapply(.SD, function(x) paste0(sum_categories[i]) ), .SDcols = sum_categories]
             thresholds_cat <- moveMeDataTable(data = thresholds_cat, tomove = sum_categories[i], where = "after", ba = paste0( categories[i], "_3000_1000000"))
-            print("17")
         }
+        print("6")
+        print(dput(thresholds_cat))
     } else {
         thresholds_cat[,"Sum"] <- "Sum"
     }
-    print("18")
+    print("7")
+    print(dput(thresholds_cat))
+
 
 
     out <- map(1:nrow(frequency_table), function(index){
