@@ -316,13 +316,10 @@ table_maker <- function(table_in, strata_in = NULL) {
         for (i in seq_along(categories)) {
             sum_categories[i] <- paste0(categories[i], "_sum")
         }
-        print(dput(sum_categories))
         print("1")
+        print(dput(sum_categories))
         thresholds_cat[,sum_categories] <- NA
         print("2")
-        print(dput(thresholds_cat))
-        thresholds_cat[ , sapply(.SD, is.character), .SDcols = sum_categories]
-        print("3")
         print(dput(thresholds_cat))
         thresholds_cat[ , (sum_categories) := lapply(.SD, as.character), .SDcols = sum_categories]      
         print("4")
