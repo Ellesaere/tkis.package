@@ -233,6 +233,7 @@ table_maker <- function(table_in, strata_in = NULL) {
     }
 
     frequency_table <- merge(frequency_table, when_strata_in_is_null, all.x=TRUE, by.x="rn", by.y="ENG_name")
+    
     print("7")
 
     ##########################################################################################
