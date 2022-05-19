@@ -40,6 +40,7 @@ table_maker <- function(table_in, strata_in = NULL) {
             }
         }
     }
+    
     print("2")
     
     lowers <- unique(name_vec$lower)
