@@ -321,6 +321,7 @@ table_maker <- function(table_in, strata_in = NULL) {
         thresholds_cat[,sum_categories] <- NA
         print("2")
         print(dput(thresholds_cat))
+        thresholds_cat <- data.table(thresholds_cat)
         thresholds_cat[ , (sum_categories) := lapply(.SD, as.character), .SDcols = sum_categories]      
         print("4")
         print(dput(thresholds_cat))
