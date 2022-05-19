@@ -5,6 +5,27 @@ table_maker <- function(table_in, strata_in = NULL) {
     # table_in <- table_lbt_cat_reg_input
     # table_in <- table_lbt_cat_soil_input
 
+    packages <- c(
+        "microbenchmark", 
+        "devtools",
+        "readxl",
+        "writexl",
+        "fuzzyjoin", 
+        "htmltools", 
+        "purrr", 
+        "flextable", 
+        "glmnet", 
+        "stringr",
+        "stringi",  
+        "magrittr",
+        "Hmisc", 
+        "tidyr",
+        "dplyr",
+        "data.table"
+    )
+
+    x <- lapply(packages, function(packages) {if (!require(packages, character.only = TRUE, quietly = TRUE, warn.conflicts=FALSE)) {library(packages, character.only = T, quietly = TRUE, warn.conflicts=FALSE)}})
+
     # Changes dput to deal with data.table
     dput = function(x, ...) { if(is.data.table(x)) { setattr(x, '.internal.selfref', NULL) }; base::dput(x, ...) }
 
