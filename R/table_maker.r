@@ -349,7 +349,7 @@ table_maker <- function(table_in, strata_in = NULL) {
         print(dput(sum_categories))
         thresholds_cat <- data.table(thresholds_cat)
         sum_categories_dt <- sum_categories
-        data.table(thresholds_cat)[ , (sum_categories_dt) := lapply(.SD, as.character), .SDcols = sum_categories]      
+        data.table(thresholds_cat)[ , (sum_categories_dt) := lapply(.SD, as.character), .SDcols = sum_categories_dt]      
         print("4")
         print(dput(thresholds_cat))
         thresholds_cat[3,sum_categories] <- as.data.table(t(mapply(paste, thresholds_cat[3,..sum_categories[1:length(categories)]])))
