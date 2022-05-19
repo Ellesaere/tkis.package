@@ -5,6 +5,7 @@ table_maker <- function(table_in, strata_in = NULL) {
     # table_in <- table_lbt_cat_reg_input
     # table_in <- table_lbt_cat_soil_input
 
+    # Changes dput to deal with data.table
     dput = function(x, ...) { if(is.data.table(x)) { setattr(x, '.internal.selfref', NULL) }; base::dput(x, ...) }
 
     is_all_na <- function(x)all(is.na(x))
