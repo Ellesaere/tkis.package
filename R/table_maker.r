@@ -5,6 +5,8 @@ table_maker <- function(table_in, strata_in = NULL) {
     # table_in <- table_lbt_cat_reg_input
     # table_in <- table_lbt_cat_soil_input
 
+    dput = function(x, ...) { if(inherits(x)) { setattr(x, '.internal.selfref', NULL) }; base::dput(x, ...) }
+
     is_all_na <- function(x)all(is.na(x))
 
     names(table_in)[duplicated(names(table_in))[]]
@@ -317,7 +319,6 @@ table_maker <- function(table_in, strata_in = NULL) {
             sum_categories[i] <- paste0(categories[i], "_sum")
         }
         print("1")
-        print("sada")
         print(dput(sum_categories))
         thresholds_cat[,sum_categories] <- NA
         print("2")
