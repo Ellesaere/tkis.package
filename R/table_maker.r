@@ -21,7 +21,7 @@ table_maker <- function(table_in, strata_in = NULL) {
         tidyr::extract(name_vec, c('lower', 'upper', 'categories'), '(\\d+),(\\d+)[\\]\\)]\\s*(\\w*)', convert = TRUE)
 
     # Adding missing columns that do not show up at all for some categories
-
+    print("1")
     if (!is.na(name_vec$categories[1])) {
         present_combinations <- str_split(names(table_in), pattern=" ", n = 2, simplify=TRUE)
         present_strata_combinations <- unique(present_combinations[,1]) # 13
@@ -40,7 +40,8 @@ table_maker <- function(table_in, strata_in = NULL) {
             }
         }
     }
-
+    print("2")
+    
     lowers <- unique(name_vec$lower)
     uppers <- unique(name_vec$upper)
     categories <- unique(name_vec$categories)
