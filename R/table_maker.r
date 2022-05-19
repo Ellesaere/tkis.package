@@ -40,7 +40,7 @@ table_maker <- function(table_in, strata_in = NULL) {
             }
         }
     }
-    
+
     print("2")
     
     lowers <- unique(name_vec$lower)
@@ -91,6 +91,8 @@ table_maker <- function(table_in, strata_in = NULL) {
 
     names(table_in)[duplicated(names(table_in))[]]
 
+    print("3")
+
   # Make thresholds
     thresholds_maker <- function(table_in, by_cat=FALSE) {
 
@@ -140,6 +142,8 @@ table_maker <- function(table_in, strata_in = NULL) {
 
     thresholds_strata <- thresholds_maker(table_in)
 
+    print("4")
+
     # COLUM ORDER
     # https://stackoverflow.com/questions/72141429/converting-column-names-so-they-can-be-put-in-an-numerical-order/72141622?noredirect=1#comment127466664_72141622
     order_cols <- function(dat) {
@@ -169,6 +173,8 @@ table_maker <- function(table_in, strata_in = NULL) {
     order <- order_cols(table_in)
     table_in <- table_in[order]
 
+    print("5")
+
     names(table_in)[duplicated(names(table_in))[]]
 
     # First by category
@@ -182,6 +188,8 @@ table_maker <- function(table_in, strata_in = NULL) {
     ############################################################################
     # total observations/population per category
     table_in$Sum_table_in <- rowSums(table_in)
+
+    print("6")
 
     # Convert to data.table (data.table does not support rownames)
     table_in <- data.table(table_in, keep.rownames = TRUE)[]
@@ -225,7 +233,8 @@ table_maker <- function(table_in, strata_in = NULL) {
     }
 
     frequency_table <- merge(frequency_table, when_strata_in_is_null, all.x=TRUE, by.x="rn", by.y="ENG_name")
- 
+    print("7")
+
     ##########################################################################################
     # Calculate standard colspan
 
@@ -246,6 +255,8 @@ table_maker <- function(table_in, strata_in = NULL) {
         x
     })
 
+    print("8")
+    
     # Index differences
     l <- lapply(frequency_table$strata, \(y) sapply(y, \(x) which(total_colspan == x) - which(y == x)))
     frequency_table$l <- l
@@ -279,6 +290,9 @@ table_maker <- function(table_in, strata_in = NULL) {
     colspan <- html_table_in %>%
         group_by(rn) %>%
         summarise(colspan = list(colspan))
+
+    print("9")
+
 
     frequency_table <- merge(frequency_table, colspan, by.x="rn", by.y="rn")
 
@@ -330,6 +344,8 @@ table_maker <- function(table_in, strata_in = NULL) {
     } else {
         thresholds_cat[,"Sum"] <- "Sum"
     }
+    print("10")
+
 
     out <- map(1:nrow(frequency_table), function(index){
         out <- data.frame("freq" = frequency_table$freq[[index]], 
@@ -368,12 +384,16 @@ table_maker <- function(table_in, strata_in = NULL) {
     flextable_out <- flextable(combined) %>% 
         theme_box()
 
+    print("11")
+    
+
     # FIX INDEX
     if (!is.na(categories[1])) {
         flextable_out$body$spans$rows[4:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(spans), ncol = ncol(combined), byrow = TRUE)
     } else {
         flextable_out$body$spans$rows[3:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(spans), ncol = ncol(combined), byrow = TRUE)    
     }
+    print("12")
 
     flextable_out <- align(flextable_out, align = "center", part = "all")
 
