@@ -21,7 +21,6 @@ table_maker <- function(table_in, strata_in = NULL) {
         tidyr::extract(name_vec, c('lower', 'upper', 'categories'), '(\\d+),(\\d+)[\\]\\)]\\s*(\\w*)', convert = TRUE)
 
     # Adding missing columns that do not show up at all for some categories
-    print("1")
     if (!is.na(name_vec$categories[1])) {
         present_combinations <- str_split(names(table_in), pattern=" ", n = 2, simplify=TRUE)
         present_strata_combinations <- unique(present_combinations[,1]) # 13
@@ -40,8 +39,6 @@ table_maker <- function(table_in, strata_in = NULL) {
             }
         }
     }
-
-    print("2")
     
     lowers <- unique(name_vec$lower)
     uppers <- unique(name_vec$upper)
@@ -90,8 +87,6 @@ table_maker <- function(table_in, strata_in = NULL) {
         )
 
     names(table_in)[duplicated(names(table_in))[]]
-
-    print("3")
 
   # Make thresholds
     thresholds_maker <- function(table_in, by_cat=FALSE) {
@@ -142,8 +137,6 @@ table_maker <- function(table_in, strata_in = NULL) {
 
     thresholds_strata <- thresholds_maker(table_in)
 
-    print("4")
-
     # COLUM ORDER
     # https://stackoverflow.com/questions/72141429/converting-column-names-so-they-can-be-put-in-an-numerical-order/72141622?noredirect=1#comment127466664_72141622
     order_cols <- function(dat) {
@@ -173,8 +166,6 @@ table_maker <- function(table_in, strata_in = NULL) {
     order <- order_cols(table_in)
     table_in <- table_in[order]
 
-    print("5")
-
     names(table_in)[duplicated(names(table_in))[]]
 
     # First by category
@@ -188,8 +179,6 @@ table_maker <- function(table_in, strata_in = NULL) {
     ############################################################################
     # total observations/population per category
     table_in$Sum_table_in <- rowSums(table_in)
-
-    print("6")
 
     # Convert to data.table (data.table does not support rownames)
     table_in <- data.table(table_in, keep.rownames = TRUE)[]
@@ -233,9 +222,6 @@ table_maker <- function(table_in, strata_in = NULL) {
     }
 
     frequency_table <- merge(frequency_table, when_strata_in_is_null, all.x=TRUE, by.x="rn", by.y="ENG_name")
-    
-    print("7")
-    print("test")
 
     ##########################################################################################
     # Calculate standard colspan
@@ -295,7 +281,6 @@ table_maker <- function(table_in, strata_in = NULL) {
 
     print("9")
 
-
     frequency_table <- merge(frequency_table, colspan, by.x="rn", by.y="rn")
 
     frequency_table_out <- frequency_table[,c("rn", "freq", "colspan")]
@@ -323,6 +308,8 @@ table_maker <- function(table_in, strata_in = NULL) {
         x
     }
 
+    print("10")
+
     if (!is.na(categories[1])){
         # Adapt
         all_categories <- gsub("_"," ", names(thresholds_strata))
@@ -332,21 +319,28 @@ table_maker <- function(table_in, strata_in = NULL) {
         thresholds_cat <- data.table(thresholds_cat)
         thresholds_cat <- moveMeDataTable(thresholds_cat, "rn", "first")
         sum_categories <- vector()
+        print("11")
         for (i in seq_along(categories)) {
             sum_categories[i] <- paste0(categories[i], "_sum")
         }
+        print("12")
         thresholds_cat[,sum_categories] <- NA
+        print("13")
         thresholds_cat[ , sapply(.SD, is.character), .SDcols = sum_categories]
+        print("14")
         thresholds_cat[ , (sum_categories) := lapply(.SD, as.character), .SDcols = sum_categories]      
+        print("15")
         thresholds_cat[3,sum_categories] <- as.data.table(t(mapply(paste, thresholds_cat[3,..sum_categories[1:length(categories)]])))
+        print("16")
         for (i in seq_along(categories)) {
             # thresholds_cat[3, (sum_categories) := lapply(.SD, function(x) paste0(sum_categories[i]) ), .SDcols = sum_categories]
             thresholds_cat <- moveMeDataTable(data = thresholds_cat, tomove = sum_categories[i], where = "after", ba = paste0( categories[i], "_3000_1000000"))
+            print("17")
         }
     } else {
         thresholds_cat[,"Sum"] <- "Sum"
     }
-    print("10")
+    print("18")
 
 
     out <- map(1:nrow(frequency_table), function(index){
