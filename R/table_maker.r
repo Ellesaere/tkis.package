@@ -317,6 +317,7 @@ table_maker <- function(table_in, strata_in = NULL) {
             sum_categories[i] <- paste0(categories[i], "_sum")
         }
         print("1")
+        print("sada")
         print(dput(sum_categories))
         thresholds_cat[,sum_categories] <- NA
         print("2")
