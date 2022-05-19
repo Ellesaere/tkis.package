@@ -85,7 +85,7 @@ overview <- function(df) {
   return(obs)
 }
 
-dput = function(x, ...) { if(inherits(x)) { setattr(x, '.internal.selfref', NULL) }; base::dput(x, ...) }
+dput = function(x, ...) { if(is.data.table(x)) { setattr(x, '.internal.selfref', NULL) }; base::dput(x, ...) }
 
 overview2 <- function(DT, corvar=NULL) { # , Group=NULL
   # Melt - Take differences - Cast                                        # https://stackoverflow.com/questions/57406654/speeding-up-a-function/57407959#57407959
