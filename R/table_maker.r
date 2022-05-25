@@ -340,34 +340,20 @@ table_maker <- function(table_in, strata_in = NULL) {
         for (i in seq_along(categories)) {
             sum_categories[i] <- paste0(categories[i], "_sum")
         }
-        print("1")
-        print(dput(sum_categories))
         thresholds_cat[,sum_categories] <- NA
-
-        print("2")
-        print(dput(thresholds_cat))
-        print(dput(sum_categories))
         thresholds_cat <- data.table(thresholds_cat)
+        thresholds_cat_out <<- data.table(thresholds_cat)
         sum_categories_dt <- sum_categories
+        sum_categories_dt_out <<- sum_categories
         data.table(thresholds_cat)[ , (sum_categories_dt) := lapply(.SD, as.character), .SDcols = sum_categories_dt]      
-        print("4")
-        print(dput(thresholds_cat))
         thresholds_cat[3,sum_categories] <- as.data.table(t(mapply(paste, thresholds_cat[3,..sum_categories[1:length(categories)]])))
-        print("5")
-        print(dput(thresholds_cat))
         for (i in seq_along(categories)) {
             # thresholds_cat[3, (sum_categories) := lapply(.SD, function(x) paste0(sum_categories[i]) ), .SDcols = sum_categories]
             thresholds_cat <- moveMeDataTable(data = thresholds_cat, tomove = sum_categories[i], where = "after", ba = paste0( categories[i], "_3000_1000000"))
         }
-        print("6")
-        print(dput(thresholds_cat))
     } else {
         thresholds_cat[,"Sum"] <- "Sum"
     }
-    print("7")
-    print(dput(thresholds_cat))
-
-
 
     out <- map(1:nrow(frequency_table), function(index){
         out <- data.frame("freq" = frequency_table$freq[[index]], 
