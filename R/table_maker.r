@@ -390,10 +390,7 @@ table_maker <- function(table_in, strata_in = NULL) {
     })
 
     flextable_out <- flextable(combined) %>% 
-        theme_box()
-
-    print("11")
-    
+        theme_box()    
 
     # FIX INDEX
     if (!is.na(categories[1])) {
@@ -401,7 +398,6 @@ table_maker <- function(table_in, strata_in = NULL) {
     } else {
         flextable_out$body$spans$rows[3:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(spans), ncol = ncol(combined), byrow = TRUE)    
     }
-    print("12")
 
     flextable_out <- align(flextable_out, align = "center", part = "all")
 
