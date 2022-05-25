@@ -343,7 +343,8 @@ table_maker <- function(table_in, strata_in = NULL) {
         thresholds_cat[,sum_categories] <- NA
         thresholds_cat <- data.table(thresholds_cat)
         thresholds_cat <- as.data.frame(lapply(thresholds_cat, as.character))
-        thresholds_cat[3,sum_categories] <- lapply(sum_categories, paste)
+        sum_categories_clean <- gsub("_", " ", sum_categories)
+        thresholds_cat[3,sum_categories] <- lapply(sum_categories_clean, paste)
         thresholds_cat <- data.table(thresholds_cat)
         for (i in seq_along(categories)) {
             # thresholds_cat[3, (sum_categories) := lapply(.SD, function(x) paste0(sum_categories[i]) ), .SDcols = sum_categories]
