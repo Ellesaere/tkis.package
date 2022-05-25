@@ -347,7 +347,6 @@ table_maker <- function(table_in, strata_in = NULL) {
         thresholds_cat[3,sum_categories] <- lapply(sum_categories_clean, paste)
         thresholds_cat <- data.table(thresholds_cat)
         for (i in seq_along(categories)) {
-            # thresholds_cat[3, (sum_categories) := lapply(.SD, function(x) paste0(sum_categories[i]) ), .SDcols = sum_categories]
             thresholds_cat <- moveMeDataTable(data = thresholds_cat, tomove = sum_categories[i], where = "after", ba = paste0( categories[i], "_3000_1000000"))
         }
     } else {
