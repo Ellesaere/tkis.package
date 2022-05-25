@@ -410,5 +410,8 @@ table_maker <- function(table_in, strata_in = NULL) {
     # set_table_properties(flextable_out, layout = "autofit")
     flextable_out <- FitFlextableToPage(flextable_out, pgwidth = 6)
 
+    flextable_out <- color(flextable_out, color="white", part = "header")
+    flextable_out <- bold(flextable_out, i = c(1:3), bold = TRUE, part = "body")
+
     return(flextable_out)
 }
