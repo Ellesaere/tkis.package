@@ -101,9 +101,6 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
             flextable_out <- bg(flextable_out, i=1:length(flextable_out[["body"]][["dataset"]][[1]]), bg = my_color_fun, part="body")
         }
 
-        list_of_cats <- list()
-        list_of_cats[[1]] <- flextable_out
-
     } else {
 
         # Check for categories
@@ -438,12 +435,19 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
             t
             return(append(1, spans))
         })
-    
+
+        spans_out <<- spans
+
+        new_spans <- list()
+        for (i in seq_along(spans)){
+            new_spans[[i]] <- spans[[i]][1:11]
+        }
+
         # FLEXTABLE
 
         list_of_cats <- list()
+
         if (!is.na(categories[1])) {
-            print("categories should be NA")
             for (i in seq_along(categories)) {
                 # assign(paste0(categories[i]), combined %>% select(starts_with(categories[i])))
                 first_col <- combined[,1]
@@ -451,14 +455,9 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
                 list_of_cats[[i]] <- cbind(first_col, cols)
                 names(list_of_cats)[i] <- paste0(categories[i])
                 list_of_cats[[i]] <- flextable(list_of_cats[[i]]) %>% theme_box()    
-                for (i in seq_along(spans)){
-                    spans[[i]] <- spans[[i]][1:11]
-                }
-                number_of_columns <- (ncol(combined)-1)/length(categories)+1
             }
         } else {
             list_of_cats[[1]] <- flextable(combined) %>% theme_box()   
-            number_of_columns <- ncol(combined)
         }
 
         for (i in seq_along(list_of_cats)) {
@@ -469,10 +468,11 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
             flextable_out <- list_of_cats[[i]]
 
             if (!is.na(categories[1])) {
-                flextable_out$body$spans$rows[4:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(spans), ncol = number_of_columns, byrow = TRUE)
+                flextable_out$body$spans$rows[4:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(new_spans), ncol = (ncol(combined)-1)/length(categories)+1, byrow = TRUE)
             } else {
-                flextable_out$body$spans$rows[3:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(spans), ncol = number_of_columns, byrow = TRUE)    
+                flextable_out$body$spans$rows[3:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(new_spans), ncol = (ncol(combined)-1)/length(categories)+1, byrow = TRUE)    
             }
+
 
             flextable_out <- align(flextable_out, align = "center", part = "all")
 
@@ -525,12 +525,13 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
                     flextable_out <- bg(flextable_out, i=3:length(flextable_out[["body"]][["dataset"]][[1]]), bg = my_color_fun)
                 }
             } 
-            
+
             list_of_cats[[i]] <- flextable_out
             
         }    
 
     }
+
 
     return(list_of_cats)
 
