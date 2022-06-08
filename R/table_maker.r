@@ -104,6 +104,9 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
             flextable_out <- bg(flextable_out, i=1:length(flextable_out[["body"]][["dataset"]][[1]]), bg = my_color_fun, part="body")
         }
 
+        flextable_out <- add_header_row(flextable_out, paste0("Table"))
+        flextable_out <- add_footer_lines(flextable_out, "Table Note")
+
         list_of_cats <- list()
         list_of_cats[[1]] <- flextable_out
 
@@ -528,6 +531,9 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
                     flextable_out <- bg(flextable_out, i=3:length(flextable_out[["body"]][["dataset"]][[1]]), bg = my_color_fun)
                 }
             } 
+
+            flextable_out <- add_header_row(flextable_out, paste0("Table"))
+            flextable_out <- add_footer_lines(flextable_out, "Table Note")
             
             list_of_cats[[i]] <- flextable_out
             
