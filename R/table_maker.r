@@ -36,6 +36,7 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
 
     # Install necessary packages
 
+    # List of packages
     packages <- c(
         "microbenchmark",
         "zeallot", 
