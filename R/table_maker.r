@@ -34,6 +34,8 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
     # table_in <- table_lbt_cat_reg_input
     # table_in <- table_lbt_cat_soil_input
 
+    # Install necessary packages
+
     packages <- c(
         "microbenchmark",
         "zeallot", 
