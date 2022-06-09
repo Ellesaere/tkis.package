@@ -1,4 +1,10 @@
-table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = TRUE, strata_all= FALSE) {
+table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = TRUE, strata_all= FALSE, BIN=TRUE) {
+
+    # table_in          = A table of the format table(df$column_A, df$column_B)
+    # strata_in         = A list with custom strata, such as when_strata_in_is_null_start below (which is used when strata_in=NULL)
+    # mark_low_vals     = Whether to mark cells with few observations with colours
+    # strata_all        = Use all SO strata for each type
+    # BIN               = If the data is BIN or LBT data 
 
     table_in <- as.data.frame.matrix(table_in)
 
@@ -29,12 +35,6 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = 
         "Combined" = c(0, 25, 100, 250, 500,1000000)
     )
 
-    if(strata_all==TRUE){
-        for (i in when_strata_in_is_null_start) {
-            when_strata_in_is_null_start[[i]] <- c(0, 25, 50, 100, 250, 500, 1000, 1500, 3000, 1000000)
-        }
-    }
-
     # FOR TESTING
     # table_in <- table_bin_cat_soil_input 
     # table_in <- table_lbt_cat_reg_input
@@ -44,9 +44,7 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = 
 
     # List of packages
     packages <- c(
-        "microbenchmark",
         "officer",
-        "zeallot", 
         "devtools",
         "readxl",
         "writexl",
@@ -54,7 +52,6 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = 
         "htmltools", 
         "purrr", 
         "flextable", 
-        "glmnet", 
         "stringr",
         "stringi",  
         "magrittr",
@@ -74,20 +71,33 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = 
     names(table_in)[duplicated(names(table_in))[]]
 
     names(table_in) = gsub(pattern = "NA*", replacement = "None", x = names(table_in))
+    
     names(table_in) = iconv(names(table_in), to='ASCII//TRANSLIT') 
     names(table_in) = str_to_title(names(table_in)) # ; names(table_in)
 
-    if (ncol(table_in) < 6) {
-        table_in$Sum_lbt <- rowSums(table_in)
+    setnames(table_in, "Missinoneg", "Missing", skip_absent=TRUE) # Because of LMM data
+
+    if (ncol(table_in) < 8) {
+        table_in$Total <- rowSums(table_in)
         table_in <- setDT(table_in, keep.rownames = TRUE)[]
-        strat_order <-  names(when_strata_in_is_null_start)
 
-        table_in <- table_in %>%
-            slice(match(strat_order, rn))
+        if(isTRUE(BIN)){
 
-        names(table_in)[1] <- "Category"
-        names(table_in)[length(names(table_in))] <- "Total"
+            if(strata_all==TRUE){
 
+                for (i in when_strata_in_is_null_start) {
+                    when_strata_in_is_null_start[[i]] <- c(0, 25, 50, 100, 250, 500, 1000, 1500, 3000, 1000000)
+                }
+             }
+
+            strat_order <-  names(when_strata_in_is_null_start)
+
+            table_in <- table_in %>%
+                slice(match(strat_order, rn))
+
+            names(table_in)[1] <- "Category"
+        }
+    
         flextable_out <- flextable(table_in)
 
         flextable_out <- align(flextable_out, align = "center", part = "all")
@@ -108,14 +118,30 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = 
         }
 
         if (isTRUE(mark_low_vals)) {
-            flextable_out <- bg(flextable_out, bg = my_color_fun, part="body")
+            if(isTRUE(BIN)){
+                flextable_out <- bg(flextable_out, bg = my_color_fun, part="body")        
+            } else {
+                flextable_out <- bg(flextable_out, j = c("Cat_1", "Cat_2", "Cat_3", "Cat_4", "Total"), bg = my_color_fun, part="body")
+            }
         }
+        
+        flextable_out <- fontsize(flextable_out, i = NULL, j = NULL, size = 8, part = "header")
+        flextable_out <- fontsize(flextable_out, i = NULL, j = NULL, size = 8, part = "body")
 
-        flextable_out <- set_caption(flextable_out, 
-            caption = "Sampling fraction according to the 2018 Agricultural Census by category", 
-            style = "Table Caption", 
-            autonum = run_autonum(seq_id = "tab", bkm = "tab1")
-        )
+
+        if(isTRUE(BIN)){
+            flextable_out <- set_caption(flextable_out, 
+                caption = "Sampling fraction according to the 2018 Agricultural Census by category", 
+                style = "Table Caption", 
+                autonum = run_autonum(seq_id = "tab", bkm = "tab1")
+            )
+        } else {
+            flextable_out <- set_caption(flextable_out, 
+                caption = "LMM observations", 
+                style = "Table Caption", 
+                autonum = run_autonum(seq_id = "tab", bkm = "tab1")
+            )  
+        }
 
         list_of_cats <- list()
         list_of_cats[[1]] <- flextable_out
@@ -535,8 +561,8 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = 
             # WHITE BORDERS
             flextable_out <- border_inner(flextable_out, border = std_border, part = "header")
 
-            flextable_out <- fontsize(flextable_out, i = NULL, j = NULL, size = 9, part = "header")
-            flextable_out <- fontsize(flextable_out, i = NULL, j = NULL, size = 9, part = "body")
+            flextable_out <- fontsize(flextable_out, i = NULL, j = NULL, size = 8, part = "header")
+            flextable_out <- fontsize(flextable_out, i = NULL, j = NULL, size = 8, part = "body")
 
             my_color_fun <- function(x) {
                 if (is.na(categories[1])) {
