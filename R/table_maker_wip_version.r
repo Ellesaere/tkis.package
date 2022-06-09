@@ -31,7 +31,7 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = 
 
     if(strata_all==TRUE){
         for (i in when_strata_in_is_null_start) {
-            when_strata_in_is_null_start[[i]] <- c(0, 25, 50, 100, 250, 500, 1000, 1500, 3000, "Infinity")
+            when_strata_in_is_null_start[[i]] <- c(0, 25, 50, 100, 250, 500, 1000, 1500, 3000, 1000000)
         }
     }
 
@@ -480,12 +480,6 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = 
             list_of_cats[[1]] <- flextable(combined) %>% theme_box()   
             number_of_columns <- ncol(combined)
         }
-
-        # athreshold_list <- lapply(athreshold_list, \(x){
-        #     # x <- append(x, c("Total"))
-        #     x <- gsub(1000000, "Infinity", x, fixed = T)
-        #     x
-        # })
 
         # FIX IS IN WRONG SPOT
         for (i in 1:length(threshold_list)){
