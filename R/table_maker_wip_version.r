@@ -483,7 +483,7 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = 
 
         # FIX IS IN WRONG SPOT
         for (i in 1:length(threshold_list)){
-            threshold_list[[i]][[length(athreshold_list[[1]])-1]] <- gsub("1000000", "Inf", threshold_list[[i]][[length(athreshold_list[[1]])-1]] )
+            threshold_list[[i]][[length(threshold_list[[1]])-1]] <- gsub("1000000", "Inf", threshold_list[[i]][[length(threshold_list[[1]])-1]] )
         }
 
         for (i in seq_along(list_of_cats)) {
