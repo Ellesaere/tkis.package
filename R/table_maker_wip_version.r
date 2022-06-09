@@ -535,6 +535,9 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = 
             # WHITE BORDERS
             flextable_out <- border_inner(flextable_out, border = std_border, part = "header")
 
+            flextable_out <- fontsize(flextable_out, i = NULL, j = NULL, size = 9, part = "header")
+            flextable_out <- fontsize(flextable_out, i = NULL, j = NULL, size = 9, part = "body")
+
             my_color_fun <- function(x) {
                 if (is.na(categories[1])) {
                     out <- rep("white", length(x))  
