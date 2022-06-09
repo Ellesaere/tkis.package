@@ -1,4 +1,4 @@
-table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
+table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
 
     table_in <- as.data.frame.matrix(table_in)
 
@@ -39,6 +39,7 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
     # List of packages
     packages <- c(
         "microbenchmark",
+        "officer",
         "zeallot", 
         "devtools",
         "readxl",
@@ -66,7 +67,7 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
 
     names(table_in)[duplicated(names(table_in))[]]
 
-    names(table_in) = gsub(pattern = "NA*", replacement = "Unknown", x = names(table_in))
+    names(table_in) = gsub(pattern = "NA*", replacement = "None", x = names(table_in))
     names(table_in) = iconv(names(table_in), to='ASCII//TRANSLIT') 
     names(table_in) = str_to_title(names(table_in)) # ; names(table_in)
 
@@ -87,6 +88,8 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
         flextable_out <- bold(flextable_out, i = c(1), bold = TRUE, part = "head")
         flextable_out <- bold(flextable_out, j = c(1), bold = TRUE, part = "body")
 
+        
+
         my_color_fun <- function(x) {
             out <- rep("white", length(x))  
             idx <- suppressWarnings(as.numeric(x) <= 5)
@@ -101,8 +104,14 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
         }
 
         if (!is.null(mark_low_vals)) {
-            flextable_out <- bg(flextable_out, i=1:length(flextable_out[["body"]][["dataset"]][[1]]), bg = my_color_fun, part="body")
+            flextable_out <- bg(flextable_out, bg = my_color_fun, part="body")
         }
+
+        flextable_out <- set_caption(flextable_out, 
+            caption = "Sampling fraction according to the 2018 Agricultural Census by stratum", 
+            style = "Table Caption", 
+            autonum = run_autonum(seq_id = "tab", bkm = "tab1")
+        )
 
         list_of_cats <- list()
         list_of_cats[[1]] <- flextable_out
@@ -326,19 +335,6 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
             })
         }
 
-        # # FOR TESTING
-        # temp <- frequency_table$rn 
-        # for (i in seq_along(  temp  )   ) {
-        #     print(frequency_table$rn[[i]])
-        #     print(  length( frequency_table$freq[[i]]   )   )
-        #     print(  length( frequency_table$l[[i]]  )   )
-        # }
-
-        # length(unlist(frequency_table$l[[23]])) # = 755
-        # length(unlist(frequency_table$freq[[23]])) # = 749
-        # length(unlist(frequency_table$l)) # = 755
-        # length(unlist(frequency_table$freq)) # = 749
-
         html_table_in <- frequency_table[1:2] %>% 
             unnest_longer(freq) %>% 
             mutate(colspan = unlist(frequency_table$l),
@@ -352,9 +348,7 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
 
         # SET TABLE ORDER
         strat_order <-  names(when_strata_in_is_null_start)
-        # threshold_lines <- as.vector(unlist(combined[1:(nrow(combined)-length(strat_order)),1]))
-        # strat_order <- append(threshold_lines, strat_order)
-        # combined <- combined %>%
+
         frequency_table <- frequency_table %>%
             slice(match(strat_order, rn))
 
@@ -408,6 +402,8 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
             thresholds_cat[,"Sum"] <- "Sum"
         }
 
+        zthresholds_cat <<- thresholds_cat
+
         out <- map(1:nrow(frequency_table), function(index){
             out <- data.frame("freq" = frequency_table$freq[[index]], 
                                 "span" = frequency_table$colspan[[index]]) %>% 
@@ -424,9 +420,32 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
             return(out)
         }) 
 
+        z2thresholds_cat <<- thresholds_cat
+        zout <<- out
+
         combined <- thresholds_cat %>% 
             mutate(across(everything(),  ~as.character(.))) %>% 
-            bind_rows(out) 
+            bind_rows(out)
+
+        z2combined <<- combined
+
+        if (!is.na(categories[1])) {
+            combined <- combined[-c(1:3),]
+        }
+
+        z3combined <<- combined
+        z3thresholds_cat <<- thresholds_cat
+
+        threshold_list <- list()
+        if (!is.na(categories[1])) {
+            for (i in seq_along(categories)) {
+                first_col <- thresholds_cat[,1]
+                cols <- thresholds_cat %>% select(starts_with(categories[i]))
+                threshold_list[[i]] <- cbind(first_col, cols)
+            } else {
+                threshold_list[[i]] <- thresholds_cat
+            }
+        }  
 
         spans <- map(1:length(frequency_table$colspan), function(index){
             spans <- frequency_table$colspan[[index]] %>%  
@@ -442,8 +461,6 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
             return(append(1, spans))
         })
     
-        # FLEXTABLE START
-
         list_of_cats <- list()
         if (!is.na(categories[1])) {
             for (i in seq_along(categories)) {
@@ -463,19 +480,32 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
             number_of_columns <- ncol(combined)
         }
 
+        zlist_of_cats <<- list_of_cats
+
         for (i in seq_along(list_of_cats)) {
-            # flextable_out <- flextable(combined) %>% 
-            #     theme_box()    
 
             # FIX INDEX
             flextable_out <- list_of_cats[[i]]
 
-            if (!is.na(categories[1])) {
-                flextable_out$body$spans$rows[4:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(spans), ncol = number_of_columns, byrow = TRUE)
-            } else {
-                flextable_out$body$spans$rows[3:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(spans), ncol = number_of_columns, byrow = TRUE)    
+            z1flextable_out <<- flextable_out
+
+
+            flextable_out$body$spans$rows[1:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(spans), ncol = number_of_columns, byrow = TRUE)
+            
+            z2flextable_out <<- flextable_out
+
+            # Label var names
+            a <- names(threshold_list[[i]])
+            b <- as.vector(unlist(threshold_list[[i]][1,]))
+            values <- as.list(setNames(b, a))
+            values_out <<- values
+            flextable_out <- set_header_labels(flextable_out, values=values)
+            for (j in 2:nrow(threshold_list[[1]])) {
+                flextable_out <- add_header(flextable_out, top = FALSE, values = threshold_list[[i]][j,])
             }
 
+            z3flextable_out <<- flextable_out
+            
             flextable_out <- align(flextable_out, align = "center", part = "all")
 
             FitFlextableToPage <- function(ft, pgwidth = 6){
@@ -486,17 +516,20 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
                 return(ft_out)
             }
 
+            colwidths <- c(rep(1,length(threshold_list[[1]])))
+            values <- c("Type of farm", rep("",length(threshold_list[[1]])-1))
+            flextable_out <- add_header_row(flextable_out, top = FALSE, values = values, colwidths = colwidths)
+
             # set_table_properties(flextable_out, layout = "autofit")
             flextable_out <- FitFlextableToPage(flextable_out, pgwidth = 6)
-            flextable_out <- color(flextable_out, color="white", part = "header")
-
-            if (!is.na(categories[1])) {
-                flextable_out <- bold(flextable_out, i = c(1:3), bold = TRUE, part = "body")
-                flextable_out <- bold(flextable_out, j = c(1), bold = TRUE, part = "body")
-            } else {
-                flextable_out <- bold(flextable_out, i = c(1:2), bold = TRUE, part = "body")
-                flextable_out <- bold(flextable_out, j = c(1), bold = TRUE, part = "body")
-            }
+            
+            grey <- nrow(threshold_list[[1]]) + 1
+            flextable_out <- bg(flextable_out, i = c(1:grey), j = NULL, bg="#bfbfbf", part = "header")
+            flextable_out <- color(flextable_out, i = c(1:grey), color="white", part = "header")
+            std_border = fp_border(color="white", width = 1)
+            flextable_out <- border_inner(flextable_out, border = std_border, part = "header")
+            
+            flextable_out <- bold(flextable_out, j = c(1), bold = TRUE, part = "body")
 
             my_color_fun <- function(x) {
                 if (is.na(categories[1])) {
@@ -522,11 +555,17 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
             
             if (!is.null(mark_low_vals)) {
                 if (!is.na(categories[1])) {
-                    flextable_out <- bg(flextable_out, i=4:length(flextable_out[["body"]][["dataset"]][[1]]), bg = my_color_fun)
+                    flextable_out <- bg(flextable_out, bg = my_color_fun)
                 } else {
-                    flextable_out <- bg(flextable_out, i=3:length(flextable_out[["body"]][["dataset"]][[1]]), bg = my_color_fun)
+                    flextable_out <- bg(flextable_out, bg = my_color_fun)
                 }
             } 
+
+            flextable_out <- set_caption(flextable_out, 
+                caption = "Sampling fraction according to the 2018 Agricultural Census by stratum", 
+                style = "Table Caption", 
+                autonum = run_autonum(seq_id = "tab", bkm = "tab1")
+            )
             
             list_of_cats[[i]] <- flextable_out
             
@@ -538,4 +577,11 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
 
 }   
 
+table_lbt <- table_maker_wip_version(table_lbt_input, mark_low_vals="test"); table_lbt
 
+# table_bin <- table_maker_wip_version(table_bin_input, mark_low_vals="test"); table_bin
+
+
+
+# table_lbt_cat_soil <- table_maker_wip_version(table_lbt_cat_soil_input, mark_low_vals="test"); table_lbt_cat_soil
+# table_bin_cat_soil <- table_maker_wip_version(table_bin_cat_soil_input, mark_low_vals="test"); table_bin_cat_soil
