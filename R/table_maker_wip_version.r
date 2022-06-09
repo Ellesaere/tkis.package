@@ -585,13 +585,4 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = 
 
     return(list_of_cats)
 
-}   
-
-table_lbt <- table_maker_wip_version(table_lbt_input); table_lbt
-
-table_bin <- table_maker_wip_version(table_bin_input); table_bin
-
-
-
-table_lbt_cat_soil <- table_maker_wip_version(table_lbt_cat_soil_input); table_lbt_cat_soil
-table_bin_cat_soil <- table_maker_wip_version(table_bin_cat_soil_input); table_bin_cat_soil
+}
