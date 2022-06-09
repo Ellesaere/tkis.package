@@ -501,8 +501,8 @@ table_maker <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
             my_color_fun <- function(x) {
                 if (is.na(categories[1])) {
                     out <- rep("white", length(x))  
-                    # idx <- suppressWarnings(as.numeric(x) <= 10)
-                    # out[idx] <- 'yellow'
+                    idx <- suppressWarnings(as.numeric(x) <= 10)
+                    out[idx] <- 'yellow'
                     idx <- suppressWarnings(as.numeric(x) <= 5)
                     out[idx] <- 'orange'
                     idx <- suppressWarnings(as.numeric(x) <= 3)
