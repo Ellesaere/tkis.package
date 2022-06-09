@@ -1,4 +1,4 @@
-table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NULL) {
+table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals = TRUE, strata_all= FALSE) {
 
     table_in <- as.data.frame.matrix(table_in)
 
@@ -28,6 +28,12 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
         "Other intensive livestock"= c(0, 25, 100, 500, 1000, 1000000),
         "Combined" = c(0, 25, 100, 250, 500,1000000)
     )
+
+    if(strata_all==TRUE){
+        for (i in when_strata_in_is_null_start) {
+            when_strata_in_is_null_start[[i]] <- c(0, 25, 50, 100, 250, 500, 1000, 1500, 3000, "Infinity")
+        }
+    }
 
     # FOR TESTING
     # table_in <- table_bin_cat_soil_input 
@@ -80,15 +86,13 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
             slice(match(strat_order, rn))
 
         names(table_in)[1] <- "Category"
-        names(table_in)[length(names(table_in))] <- "Sum"
+        names(table_in)[length(names(table_in))] <- "Total"
 
         flextable_out <- flextable(table_in)
 
         flextable_out <- align(flextable_out, align = "center", part = "all")
         flextable_out <- bold(flextable_out, i = c(1), bold = TRUE, part = "head")
-        flextable_out <- bold(flextable_out, j = c(1), bold = TRUE, part = "body")
-
-        
+        flextable_out <- bold(flextable_out, j = c(1), bold = TRUE, part = "body")     
 
         my_color_fun <- function(x) {
             out <- rep("white", length(x))  
@@ -103,12 +107,12 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
             out
         }
 
-        if (!is.null(mark_low_vals)) {
+        if (isTRUE(mark_low_vals)) {
             flextable_out <- bg(flextable_out, bg = my_color_fun, part="body")
         }
 
         flextable_out <- set_caption(flextable_out, 
-            caption = "Sampling fraction according to the 2018 Agricultural Census by stratum", 
+            caption = "Sampling fraction according to the 2018 Agricultural Census by category", 
             style = "Table Caption", 
             autonum = run_autonum(seq_id = "tab", bkm = "tab1")
         )
@@ -172,7 +176,7 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
         if (!is.na(categories[1])) {
             out <- rbind(rep(lowers, each = length(categories)), rep(uppers, each = length(categories)))
             colnames(out) <- rep(c(categories), length.out = ncol(out))
-            row.names(out) <- c('lower threshold', 'upper threshold')
+            row.names(out) <- c('lower threshold x1000', 'upper threshold x1000')
             # https://stackoverflow.com/questions/62960127/convert-column-names-into-first-row-of-data-frame-in-r
             if (by_cat) {
                 firstrow <- colnames(out)
@@ -193,7 +197,7 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
             }
         } else {
             out <- rbind(lowers, uppers)
-            row.names(out) <- c('lower threshold', 'upper threshold')
+            row.names(out) <- c('lower threshold x1000', 'upper threshold x1000')
             firstrow <- colnames(out)
             # https://stackoverflow.com/questions/62960127/convert-column-names-into-first-row-of-data-frame-in-r
             out <- setNames(rbind(firstrow, out), names(out))
@@ -313,15 +317,18 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
         options(warn = oldw)
         unique_num_values <- x[!is.na(x)]
         unique_num_values <- sort(unique_num_values)
-        total_colspan <- c(unique_num_values, "SUM")
+        total_colspan <- c(unique_num_values, "Total")
         total_colspan <- gsub(1000000, "Infinity", total_colspan, fixed = T)
+        atotal_colspan <<- total_colspan
 
         frequency_table$strata <- lapply(frequency_table$strata, \(x){
-            # x <- append(x, c("SUM"))
+            # x <- append(x, c("Total"))
             x <- gsub(1000000, "Infinity", x, fixed = T)
-            x <- append(x, c("SUM"))
+            x <- append(x, c("Total"))
             x
         })
+        
+        afrequency_table <<- frequency_table
         
         # Index differences
         l <- lapply(frequency_table$strata, \(y) sapply(y, \(x) which(total_colspan == x) - which(y == x)))
@@ -387,7 +394,7 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
             thresholds_cat <- moveMeDataTable(thresholds_cat, "rn", "first")
             sum_categories <- vector()
             for (i in seq_along(categories)) {
-                sum_categories[i] <- paste0(categories[i], "_sum")
+                sum_categories[i] <- paste0(categories[i], "_total")
             }
             thresholds_cat[,sum_categories] <- NA
             thresholds_cat <- data.table(thresholds_cat)
@@ -399,10 +406,10 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
                 thresholds_cat <- moveMeDataTable(data = thresholds_cat, tomove = sum_categories[i], where = "after", ba = paste0( categories[i], "_3000_1000000"))
             }
         } else {
-            thresholds_cat[,"Sum"] <- "Sum"
+            thresholds_cat[,"Total"] <- "Total"
         }
 
-        zthresholds_cat <<- thresholds_cat
+        athresholds_cat <<- thresholds_cat
 
         out <- map(1:nrow(frequency_table), function(index){
             out <- data.frame("freq" = frequency_table$freq[[index]], 
@@ -420,21 +427,15 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
             return(out)
         }) 
 
-        z2thresholds_cat <<- thresholds_cat
-        zout <<- out
-
         combined <- thresholds_cat %>% 
             mutate(across(everything(),  ~as.character(.))) %>% 
             bind_rows(out)
 
-        z2combined <<- combined
-
         if (!is.na(categories[1])) {
             combined <- combined[-c(1:3),]
+        } else {
+            combined <- combined[-c(1:2),]
         }
-
-        z3combined <<- combined
-        z3thresholds_cat <<- thresholds_cat
 
         threshold_list <- list()
         if (!is.na(categories[1])) {
@@ -442,10 +443,10 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
                 first_col <- thresholds_cat[,1]
                 cols <- thresholds_cat %>% select(starts_with(categories[i]))
                 threshold_list[[i]] <- cbind(first_col, cols)
-            } else {
-                threshold_list[[i]] <- thresholds_cat
-            }
-        }  
+            } 
+        } else {
+            threshold_list[[1]] <- thresholds_cat
+        }
 
         spans <- map(1:length(frequency_table$colspan), function(index){
             spans <- frequency_table$colspan[[index]] %>%  
@@ -480,35 +481,36 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
             number_of_columns <- ncol(combined)
         }
 
-        zlist_of_cats <<- list_of_cats
+        # athreshold_list <- lapply(athreshold_list, \(x){
+        #     # x <- append(x, c("Total"))
+        #     x <- gsub(1000000, "Infinity", x, fixed = T)
+        #     x
+        # })
+
+        # FIX IS IN WRONG SPOT
+        for (i in 1:length(threshold_list)){
+            threshold_list[[i]][[length(athreshold_list[[1]])-1]] <- gsub("1000000", "Inf", threshold_list[[i]][[length(athreshold_list[[1]])-1]] )
+        }
 
         for (i in seq_along(list_of_cats)) {
 
             # FIX INDEX
             flextable_out <- list_of_cats[[i]]
 
-            z1flextable_out <<- flextable_out
-
-
             flextable_out$body$spans$rows[1:nrow(flextable_out$body$spans$rows),] <- matrix(unlist(spans), ncol = number_of_columns, byrow = TRUE)
             
-            z2flextable_out <<- flextable_out
-
             # Label var names
             a <- names(threshold_list[[i]])
             b <- as.vector(unlist(threshold_list[[i]][1,]))
             values <- as.list(setNames(b, a))
-            values_out <<- values
             flextable_out <- set_header_labels(flextable_out, values=values)
             for (j in 2:nrow(threshold_list[[1]])) {
                 flextable_out <- add_header(flextable_out, top = FALSE, values = threshold_list[[i]][j,])
             }
-
-            z3flextable_out <<- flextable_out
             
             flextable_out <- align(flextable_out, align = "center", part = "all")
 
-            FitFlextableToPage <- function(ft, pgwidth = 6){
+            FitFlextableToPage <- function(ft, pgwidth = 6) {
 
                 ft_out <- ft %>% autofit()
 
@@ -516,20 +518,28 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
                 return(ft_out)
             }
 
-            colwidths <- c(rep(1,length(threshold_list[[1]])))
-            values <- c("Type of farm", rep("",length(threshold_list[[1]])-1))
-            flextable_out <- add_header_row(flextable_out, top = FALSE, values = values, colwidths = colwidths)
 
             # set_table_properties(flextable_out, layout = "autofit")
             flextable_out <- FitFlextableToPage(flextable_out, pgwidth = 6)
             
-            grey <- nrow(threshold_list[[1]]) + 1
-            flextable_out <- bg(flextable_out, i = c(1:grey), j = NULL, bg="#bfbfbf", part = "header")
-            flextable_out <- color(flextable_out, i = c(1:grey), color="white", part = "header")
+            # GREY THRESHOLDS
+            flextable_out <- bg(flextable_out, bg="#bfbfbf", part = "header")
+            flextable_out <- color(flextable_out, color="white", part = "header")
             std_border = fp_border(color="white", width = 1)
-            flextable_out <- border_inner(flextable_out, border = std_border, part = "header")
-            
+
+            # BOLD FIRST COLUMN            
             flextable_out <- bold(flextable_out, j = c(1), bold = TRUE, part = "body")
+            
+            colwidths <- c(rep(1,length(threshold_list[[1]])))
+            values <- c("Type of farm", rep("",length(threshold_list[[1]])-1))
+            flextable_out <- add_header_row(flextable_out, top = FALSE, values = values, colwidths = colwidths)
+            flextable_out <- italic(flextable_out, i= nrow(thresholds_cat)+1, italic = TRUE, part = "header")
+            flextable_out <- bold(flextable_out, i= nrow(thresholds_cat)+1, bold=FALSE, part = "header")
+            flextable_out <- color(flextable_out, i= nrow(thresholds_cat)+1, color="black", part = "header")
+            flextable_out <- bg(flextable_out, i= nrow(thresholds_cat)+1, bg="white", part = "header")
+
+            # WHITE BORDERS
+            flextable_out <- border_inner(flextable_out, border = std_border, part = "header")
 
             my_color_fun <- function(x) {
                 if (is.na(categories[1])) {
@@ -553,7 +563,7 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
                 }
             }
             
-            if (!is.null(mark_low_vals)) {
+            if (isTRUE(mark_low_vals)) {
                 if (!is.na(categories[1])) {
                     flextable_out <- bg(flextable_out, bg = my_color_fun)
                 } else {
@@ -561,12 +571,18 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
                 }
             } 
 
-            flextable_out <- set_caption(flextable_out, 
-                caption = "Sampling fraction according to the 2018 Agricultural Census by stratum", 
-                style = "Table Caption", 
-                autonum = run_autonum(seq_id = "tab", bkm = "tab1")
-            )
-            
+            if (!is.na(categories[1])) {
+                flextable_out <- set_caption(flextable_out, 
+                    caption = "Sampling fraction according to the 2018 Agricultural Census by stratum and category", 
+                    style = "Table Caption", 
+                    autonum = run_autonum(seq_id = "tab", bkm = "tab1"))
+            } else {
+                flextable_out <- set_caption(flextable_out, 
+                    caption = "Sampling fraction according to the 2018 Agricultural Census by stratum", 
+                    style = "Table Caption", 
+                    autonum = run_autonum(seq_id = "tab", bkm = "tab1"))
+            }
+
             list_of_cats[[i]] <- flextable_out
             
         }    
@@ -577,11 +593,11 @@ table_maker_wip_version <- function(table_in, strata_in = NULL, mark_low_vals=NU
 
 }   
 
-table_lbt <- table_maker_wip_version(table_lbt_input, mark_low_vals="test"); table_lbt
+table_lbt <- table_maker_wip_version(table_lbt_input); table_lbt
 
-# table_bin <- table_maker_wip_version(table_bin_input, mark_low_vals="test"); table_bin
+table_bin <- table_maker_wip_version(table_bin_input); table_bin
 
 
 
-# table_lbt_cat_soil <- table_maker_wip_version(table_lbt_cat_soil_input, mark_low_vals="test"); table_lbt_cat_soil
-# table_bin_cat_soil <- table_maker_wip_version(table_bin_cat_soil_input, mark_low_vals="test"); table_bin_cat_soil
+table_lbt_cat_soil <- table_maker_wip_version(table_lbt_cat_soil_input); table_lbt_cat_soil
+table_bin_cat_soil <- table_maker_wip_version(table_bin_cat_soil_input); table_bin_cat_soil
