@@ -1,4 +1,4 @@
-table_maker_wip_version <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, strata = "FADN_2018", mark_low_vals = TRUE, calculate="none", BIN = TRUE, year_of_interest_for_approaching=2024) {
+table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, strata = "FADN_2018", mark_low_vals = TRUE, calculate="none", BIN = TRUE, year_of_interest_for_approaching=2024, required_benefit_as_fraction=0.05) {
  
     # DAT                 = The name of main dataset. This is usually BIN data.
 
@@ -102,9 +102,9 @@ table_maker_wip_version <- function(DAT, year=2020, category_type = NULL, LBT_da
             do.call(order, .)        # use the list for ordering
     }
 
-    ### Settings ############################################################################################################################################################
+    ### Settings ######################################################################################################################################
 
-    required_benefit <- 0.05
+    required_benefit <- required_benefit_as_fraction
 
     ### Calculate Strata ####################################################################################################################################################
 
@@ -507,7 +507,15 @@ table_maker_wip_version <- function(DAT, year=2020, category_type = NULL, LBT_da
     if (is.null(category_type)) {
         row_sums_stored_from_only_bin <- rowSums(table_bin_input)
     } else if ( !is.null(category_type) ) {
-        row_sums_stored_from_only_bin <- rowSums(table_bin_input)
+        list_of_row_sums_stored_from_only_bin <- list()
+        tibble_format <- as.data.frame.matrix(table_bin_input)
+        out_tibble_format <<- tibble_format
+        out_categories_vec <<- categories_vec
+        for (i in seq_along(categories_vec)) {
+            tibble_format_temp <- tibble_format %>% select(ends_with(as.vector(unlist(categories_vec[[i]]))))
+            list_of_row_sums_stored_from_only_bin[[i]] <- rowSums(tibble_format_temp)            
+        }
+        names(list_of_row_sums_stored_from_only_bin) <- categories_vec
     }
     
     print("Input tables created")
@@ -520,7 +528,7 @@ table_maker_wip_version <- function(DAT, year=2020, category_type = NULL, LBT_da
 
         # add columns (with zeroes) which are not present in DAT from LBT data
         add_to_bin_names <- setdiff(names_lbt_table, names_bin_table)
-        out_add_to_bin_names <<- add_to_bin_names
+
         if (length(add_to_bin_names)>1) {
             add_to_bin <- table_lbt_input[,add_to_bin_names]
             add_to_bin[add_to_bin > 0] <- 0 
@@ -577,11 +585,7 @@ table_maker_wip_version <- function(DAT, year=2020, category_type = NULL, LBT_da
 
             tab <- t(tab)
 
-            out_tab1 <<- tab
-
             tab <- cbind(table_bin_input[,1],tab)
-
-            out_tab2 <<- tab
 
             # Put table_bin_input strata columns right order
             replacement_order <- order_cols(table_bin_input)
@@ -598,12 +602,9 @@ table_maker_wip_version <- function(DAT, year=2020, category_type = NULL, LBT_da
             # Put tab strata columns right order
             replacement_order <- order_cols(tab)
             tab <- tab[,replacement_order]
-            out_tab3 <<- tab
             # Put tab NSO rows right order
             index_order <- match(strat_order, row.names(tab))
             tab <- tab[index_order,]
-
-            out_tab4 <<- tab
 
             # Subtract optimal observations from available BIN observations, excluding[0,25]. This calculates observations surplus.
             BIN_II <- table_bin_input[,2:ncol(BIN_II)] - tab[,2:ncol(tab)]
@@ -715,9 +716,10 @@ table_maker_wip_version <- function(DAT, year=2020, category_type = NULL, LBT_da
 
     setnames(table_in, "Missinoneg", "Missing", skip_absent=TRUE) # Because of LMM data
 
-    ###########################################################################################################################################################################
-    ###########################################################################################################################################################################
-    ###########################################################################################################################################################################
+    ###################################################################################################################################################
+    ###################################################################################################################################################
+    ###################################################################################################################################################
+
     if (!is.na(category_type) && ncol(table_in) < 8) {
         print("Less than 8 columns in table_in, assuming that the only categories in the data are region or soil-type")
 
@@ -805,7 +807,7 @@ table_maker_wip_version <- function(DAT, year=2020, category_type = NULL, LBT_da
         list_of_cats <- list()
         list_of_cats[[1]] <- flextable_out
 
-    } else { #######################################################################################################################################################
+    } else { ##########################################################################################################################################
 
         print("Input data has more than 7 columns; Assuming that SO strata are used.")
         # Check for categories
@@ -818,22 +820,17 @@ table_maker_wip_version <- function(DAT, year=2020, category_type = NULL, LBT_da
         # Adding missing columns that do not show up at all for some categories
         if (!is.na(name_vec$threshold_categories[1])) {
             present_combinations <- str_split(names(table_in), pattern=" ", n = 2, simplify=TRUE)
-            print(present_combinations)
             present_strata_combinations <- unique(present_combinations[,1]) # 13
-            print(present_strata_combinations)
 
             present_categories <- unique(present_combinations[,2]) # 5
-            print(present_categories)
 
             all_combinations <- rbind(rep(present_strata_combinations, each = length(present_categories)))
             all_combinations <- rbind(all_combinations, present_categories)
             all_combinations <- paste0(all_combinations[1,], " ", all_combinations[2,])
-            print(present_categories)
             
             if (    length(names(table_in)) != length(all_combinations) ) {
                 # Add missing categories
                 add_name_vector <- all_combinations[all_combinations %nin% names(table_in)]
-                print(add_name_vector)
 
                 for (i in seq_along(add_name_vector)) {
                     if (add_name_vector[i] %nin% names(table_in)) {
@@ -936,14 +933,12 @@ table_maker_wip_version <- function(DAT, year=2020, category_type = NULL, LBT_da
 
         ############################################################################
 
-        out_row_sums_stored_from_only_bin <<- row_sums_stored_from_only_bin
         # total observations/population per category
-        # table_in$Total <- rowSums(table_in)
-        table_in$Total <- row_sums_stored_from_only_bin
+        if (is.na(categories_vec[1])) {
+            table_in$Total <- row_sums_stored_from_only_bin
+        }
         # Convert to data.table (data.table does not support rownames)
         table_in <- data.table(table_in, keep.rownames = TRUE)[] # This table already has the right numbers for BIN and LBT
-
-        out_table_in_y <<- table_in
 
         # REPLACEMENT TABLE WITH LBT
         if (!is.null(LBT_data) && calculate == "none") {
@@ -1007,12 +1002,11 @@ table_maker_wip_version <- function(DAT, year=2020, category_type = NULL, LBT_da
             table_in <- merge(table_in, strata_df, all.x=TRUE, by.x="rn", by.y="ENG_name", sort=TRUE)
         } 
 
-
-        out_table_in_x <<- table_in
     # Add lists of frequencies ###############################################
 
-        # 
-        if (!is.na(categories_vec[1])) {            
+        
+        if (!is.na(categories_vec[1])) {  
+            table_in <- table_in %>% mutate_if(is.character,as.numeric)       
             print("Making a separate table for each of the categories")
             # Split table categories
             frequency_table <- table_in %>%
@@ -1068,16 +1062,9 @@ table_maker_wip_version <- function(DAT, year=2020, category_type = NULL, LBT_da
 
         }
 
-        out_frequency_table <<- frequency_table
-
         frequency_table <- frequency_table %>%
                 slice(match(strat_order, rn))
 
-        # if ( isTRUE(strata == "calculate") ) {
-
-        # frequency_table$optimal_sample_size <- optimal_sample_sizes_by_SOcat
-
-        out_frequency_table2 <<- frequency_table
         ##########################################################################################
         # Calculate standard colspan
         oldw <- getOption("warn")
@@ -1238,13 +1225,19 @@ table_maker_wip_version <- function(DAT, year=2020, category_type = NULL, LBT_da
             return(append(1, spans))
         })    
 
+        print("1")
         list_of_cats <- list()
         if (!is.na(categories_vec[1])) {
             for (i in seq_along(categories_vec)) {
                 # assign(paste0(categories_vec[i]), combined %>% select(starts_with(categories_vec[i])))
+                print(categories_vec[i])
                 first_col <- combined[,1]
-                cols <- combined %>% select(starts_with(categories_vec[i]))
-                list_of_cats[[i]] <- cbind(first_col, cols)
+                other_cols <- combined %>% select(starts_with(categories_vec[i]))
+                out_other_cols1 <<- other_cols
+                # Too late for totals, since LBT data is already in there, but can be replaced!
+                other_cols[,ncol(other_cols)] <- list_of_row_sums_stored_from_only_bin[[i]]
+                out_other_cols2 <<- other_cols
+                list_of_cats[[i]] <- cbind(first_col, other_cols)
                 names(list_of_cats)[i] <- paste0(categories_vec[i], "-gebieden")
 
                 list_of_cats[[i]] <- flextable(list_of_cats[[i]]) %>% theme_box()    
