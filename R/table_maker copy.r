@@ -106,14 +106,15 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
             do.call(order, .)        # use the list for ordering
     }
 
-            my_color_fun <- function(x) {
+
+            my_color_body_fun <- function(x) {
                 if (calculate=="relative_svc_deviation") {
                     out <- rep("white", length(x))  
-                    idx <- suppressWarnings(as.numeric(x) < 25 | as.numeric(x) > -25)
+                    idx <- suppressWarnings(as.numeric(x) < 25)
                     out[idx] <- 'green'
-                    idx <- suppressWarnings(as.numeric(x) > 50 | as.numeric(x) < -50)
+                    idx <- suppressWarnings(as.numeric(x) > 50)
                     out[idx] <- 'orange'
-                    idx <- suppressWarnings(as.numeric(x) > 100 | as.numeric(x) < -100)
+                    idx <- suppressWarnings(as.numeric(x) > 100)
                     out[idx] <- 'pink'
                     idx <- suppressWarnings(is.na(as.numeric(x)))
                     out[idx] <- 'red'
@@ -122,16 +123,17 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
                     out
                 } else if (calculate=="variance") {
                     out <- rep("white", length(x))  
-                    idx <- suppressWarnings(as.numeric(x) <= 10)
-                    out[idx] <- 'yellow'
-                    idx <- suppressWarnings(as.numeric(x) <= 5)
+                    idx <- suppressWarnings(as.numeric(x) <= 100)
+                    out[idx] <- 'green'
+                    idx <- suppressWarnings(as.numeric(x) >= 1000)
                     out[idx] <- 'orange'
-                    idx <- suppressWarnings(as.numeric(x) <= 3)
+                    idx <- suppressWarnings(as.numeric(x) >= 10000)
                     out[idx] <- 'pink'
                     idx <- suppressWarnings(is.na(as.numeric(x)))
                     out[idx] <- 'red'
                     out
                 } else if (is.na(categories_vec[1]) && calculate == "fractions") {
+                    # Because sample fractions should not be more than 10% of the population and not 0.
                     out <- rep("white", length(x))
                     idx <- suppressWarnings(as.numeric(x) == 0)
                     out[idx] <- 'red'
@@ -163,22 +165,22 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
                 }
             }
 
-            my_color_total_fun <- function(x) {
-                if (!is.na(categories_vec[1]) && calculate=="none") {
-                    out <- rep("white", length(x))  
-                    idx <- suppressWarnings(as.numeric(x) <= 8)
-                    out[idx] <- 'yellow'
-                    idx <- suppressWarnings(as.numeric(x) <= 5)
-                    out[idx] <- 'orange'
-                    idx <- suppressWarnings(as.numeric(x) <= 1)
-                    out[idx] <- 'pink'
-                    idx <- suppressWarnings(as.numeric(x) <= 0)
-                    out[idx] <- 'red'
-                    idx <- suppressWarnings(is.na(as.numeric(x)))
-                    out[idx] <- 'red'                    
-                    out
-                }
+        my_color_total_fun <- function(x) {
+            if (!is.na(categories_vec[1]) && calculate=="none") {
+                out <- rep("white", length(x))  
+                idx <- suppressWarnings(as.numeric(x) <= 3)
+                out[idx] <- 'yellow'
+                idx <- suppressWarnings(as.numeric(x) <= 2)
+                out[idx] <- 'orange'
+                idx <- suppressWarnings(as.numeric(x) <= 1)
+                out[idx] <- 'pink'
+                idx <- suppressWarnings(as.numeric(x) <= 0)
+                out[idx] <- 'red'
+                idx <- suppressWarnings(is.na(as.numeric(x)))
+                out[idx] <- 'red'                    
+                out
             }
+        }
 
     ### Settings ######################################################################################################################################
 
@@ -521,7 +523,6 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
     }
 
 
-
     if (!is.null(category_type)) {
         categories_vec <- unique(DAT[, ..category_type])
         categories_vec <- unlist(as.vector(categories_vec))
@@ -540,25 +541,27 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
         LBT[, `:=` (var_SO = round(var(SO),0)), by = SO_cat_reg]
         print("Variance calculated")     
     } else if (calculate=="relative_svc_deviation" && !is.null(category_type)) {
-        print("2a")
         # DOES NOT WORK
         rel_deviation_by_categories <- paste0("rel_deviation_by_", category_type)
         DAT <- data.table(DAT)
+        out_category_type <<- category_type
+        out_DAT <<- DAT
         out_rel_deviation_by_categories <<- rel_deviation_by_categories
-        DAT[, (rel_deviation_by_categories) :=  100 * mean( (SVC - NTW) / NTW , na.rm=TRUE), by=c("SO_cat_type", category_type)]   
+        DAT[, (rel_deviation_by_categories) :=  100 * mean( (SVC - NTW) / NTW , na.rm=TRUE), by=c(SO_cat_type, category_type)]        
         if ( length(year) > 1 ) {
             rel_deviation_by_categories <- paste0("rel_deviation_", category_type, "by_year" )
-            DAT[, (rel_deviation_by_categories_by_year) := 100 * mean( ( SVC - NTW ) / NTW, na.rm=TRUE), by=c("SO_cat_type", category_type, if(year){"jaar"})]
+            DAT[, (rel_deviation_by_categories_by_year) := 100 * mean( ( SVC - NTW ) / NTW, na.rm=TRUE), by=c(SO_cat_type, category_type, if(year){"jaar"})]
         }
         print("Relative SVC deviations calculated, by ")
         print("Please note that SVC deviations should be calculated on all years, so 'years' should be set to NULL")
     } else if (calculate=="relative_svc_deviation" && is.null(category_type)) {
         # DOES NOT WORK
-        DAT <- data.table(DAT)      
-        DAT[, relative_deviation :=  100 * mean( (SVC - NTW) / NTW , na.rm=TRUE), by=c("SO_cat_type")]    
+        DAT <- data.table(DAT)
+        out_DAT <<- DAT
+        DAT[, relative_deviation :=  100 * mean( (SVC - NTW) / NTW , na.rm=TRUE), by=c(SO_cat_type)]        
         if ( length(year) > 1 ) {
             rel_deviation_by_year <- paste0("rel_deviation_", "by_year" )
-            DAT[, (rel_deviation_by_year) := 100 * mean( ( SVC - NTW ) / NTW, na.rm=TRUE), by=c("SO_cat_type", if(year){"jaar"})]
+            DAT[, (rel_deviation_by_year) := 100 * mean( ( SVC - NTW ) / NTW, na.rm=TRUE), by=c(SO_cat_type, if(year){"jaar"})]
         }
         print("Relative SVC deviations calculated")
         print("Please note that SVC deviations should be calculated on all years, so 'years' should be set to NULL")
@@ -582,15 +585,11 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
         print("Variance table created")
     } else if (is.null(category_type) && calculate=="relative_svc_deviation") {
         # xtabs(as.formula(paste(mean_val_by_var, "~", by_var)), dat)
-        table_bin_input <- xtabs(as.formula(paste("relative_deviation", "~", "ENG_name", "+", "SO_cat")), DAT)
-        table_bin_input <- round(table_bin_input, 3)     
-        BIN_observations <- table(DAT$ENG_name, DAT$SO_cat)
+        table_bin_input <- xtabs(as.formula(paste(rel_deviation_by_categories, "~", "ENG_name", "+", "SO_cat")), DAT)
         print("Relative SVC deviations table created")
     } else if (!is.null(category_type) && calculate=="relative_svc_deviation") {
-        table_bin_input <- xtabs(as.formula(paste("rel_deviation_by_categories", "~", "ENG_name", "+", "SO_cat_reg")), DAT)
-        table_bin_input <- round(table_bin_input, 3)
-        print(table_bin_input)
-        BIN_observations <- table(DAT$ENG_name, DAT$SO_cat)
+        out_table_bin_input <<- table_bin_input
+        table_bin_input <- xtabs(as.formula(paste(rel_deviation_by_categories, "~", "ENG_name", "+", "SO_cat_reg")), DAT)
         print("Relative SVC deviations table created")
     } else if (calculate == "fractions") {
         table_bin_input <- table(DAT$ENG_name, DAT$SO_cat)
@@ -614,22 +613,13 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
         for (i in seq_along(categories_vec)) {
 
             tibble_format_temp <- tibble_format %>% select(ends_with(as.vector(unlist(categories_vec[[i]]))))
+            print(tibble_format_temp)
             list_of_row_sums_stored_from_only_bin[[i]] <- rowSums(tibble_format_temp, na.rm=TRUE)  
                  
         }
         names(list_of_row_sums_stored_from_only_bin) <- categories_vec
         list_of_row_sums_stored_from_only_bin = list_of_row_sums_stored_from_only_bin[order(names(list_of_row_sums_stored_from_only_bin))]
         print(names(list_of_row_sums_stored_from_only_bin))
-    } else if (is.null(category_type) && calculate=="relative_svc_deviation") {
-        # Weights have to be taken from BIN
-        table_bin_input_temp <- as.data.frame.matrix(table_bin_input)
-        BIN_observations <- as.data.frame.matrix(BIN_observations)
-        # BIN observations are in wrong order
-        index_order <- match(strat_order, row.names(BIN_observations))
-        BIN_observations <- BIN_observations[index_order,]
-
-        row_sums_stored_from_only_bin <- apply(table_bin_input_temp, 1, function(x) weighted.mean(x, BIN_observations, na.rm=TRUE))
-        row_sums_stored_from_only_bin <- round(row_sums_stored_from_only_bin, 3)
     }
     
 
@@ -649,7 +639,7 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
             add_to_bin <- table_lbt_input[,add_to_bin_names]
             add_to_bin[add_to_bin > 0] <- 0 
             BIN_II <- cbind(table_bin_input, add_to_bin)
-            BIN_II <- BIN_II[,names_lbt_table]
+            BIN_II <- BIN_II[,..names_lbt_table]
         } else if (length(add_to_bin_names)==1) {
             print("1 column added")
             add_to_bin <- table_lbt_input[,add_to_bin_names]
@@ -753,8 +743,7 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
             # DON'T CHANGE NEXT LINE
             bin_replacements_index_table <<- i1 # Otherwise value is not returned
         } else if (isTRUE(calculate == "fractions")) {
-            out_table_bin_input <<- table_bin_input
-            out_table_lbt_input <<- table_lbt_input
+
             BIN_II <- table_bin_input/table_lbt_input
             BIN_II <- round(BIN_II, 3)
         }
@@ -889,7 +878,7 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
         flextable_out <- bold(flextable_out, i = c(1), bold = TRUE, part = "head")
         flextable_out <- bold(flextable_out, j = c(1), bold = TRUE, part = "body")     
 
-        my_color_fun <- function(x) {
+        my_color_body_fun <- function(x) {
             out <- rep("white", length(x))
             idx <- suppressWarnings(as.numeric(x) <= 5)
             out[idx] <- 'yellow'
@@ -904,24 +893,15 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
             out
         }
 
-        my_color_fun_total <- function(x) {
-            out <- rep("white", length(x))
-            idx <- suppressWarnings(as.numeric(x) < 33)
-            out[idx] <- 'pink'
-            idx <- suppressWarnings(as.numeric(x) < 30)
-            out[idx] <- 'red'
-            out
-        }
-
         if (isTRUE(mark_low_vals)) {
             if( isTRUE(BIN) && isFALSE(calculate == "fractions") ){
-                flextable_out <- bg(flextable_out, j=c(categories_vec), bg = my_color_fun, part="body")       
-                flextable_out <- bg(flextable_out, j=c("Total"), bg = my_color_fun_total, part="body")   
+                flextable_out <- bg(flextable_out, j=c(categories_vec), bg = my_color_body_fun, part="body")       
+                flextable_out <- bg(flextable_out, j=c("Total"), bg = my_color_body_fun_total, part="body")   
             } else if(isTRUE(BIN) && isTRUE(calculate == "fractions")) {
-                flextable_out <- bg(flextable_out, j=c(categories_vec), bg = my_color_fun_fractions, part="body")       
+                flextable_out <- bg(flextable_out, j=c(categories_vec), bg = my_color_body_fun_fractions, part="body")       
             } else {
                 # FIX
-                flextable_out <- bg(flextable_out, j = c("Cat_1", "Cat_2", "Cat_3", "Cat_4", "Total"), bg = my_color_fun, part="body")
+                flextable_out <- bg(flextable_out, j = c("Cat_1", "Cat_2", "Cat_3", "Cat_4", "Total"), bg = my_color_body_fun, part="body")
             }
         }
         
@@ -974,7 +954,7 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
                 for (i in seq_along(add_name_vector)) {
                     if (add_name_vector[i] %nin% names(table_in)) {
                         table_in[ , add_name_vector[i]] <- 0
-                        if (exists("bin_replacements_index_table")) {
+                        if (exists(bin_replacements_index_table)) {
                             bin_replacements_index_table <- cbind(bin_replacements_index_table,FALSE)
                             colnames(bin_replacements_index_table)[ncol(bin_replacements_index_table)] <- add_name_vector[i]
                         }
@@ -1148,6 +1128,8 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
 
         if (calculate=="variance"){
             table_in$Total <- "Not applicable"
+        } else if (calculate=="relative_svc_deviation") {
+           print("needed")
         }
 
         if (!is.na(categories_vec[1])) {  
@@ -1173,7 +1155,6 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
             frequency_table$value <- as.character(frequency_table$value)
             frequency_table$upper <- as.character(frequency_table$upper)
 
-
             frequency_table <- frequency_table %>%
                 group_by(rn, direction ) %>% 
                 summarise(value = as.character(sum(as.numeric(value), na.rm=TRUE)), .groups = 'drop_last', upper="1000001", strata_column=strata_column) %>%                  # get sum of sizes
@@ -1193,7 +1174,6 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
                 summarise(freq = list(value), .groups = 'drop')  
 
         } else {
-            out_table_in_Y <<- table_in
             out_table_in <<- table_in
             frequency_table <- out_table_in  %>%
                 pivot_longer(-c(rn, strata_column, Total)) %>%
@@ -1378,7 +1358,6 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
         if (!is.na(categories_vec[1])) {
             for (i in seq_along(categories_vec)) {
                 # assign(paste0(categories_vec[i]), combined %>% select(starts_with(categories_vec[i])))
-                print(categories_vec[i])
                 first_col <- combined[,1]
                 other_cols <- combined %>% select(starts_with(categories_vec[i]))
                 out_other_cols1 <<- other_cols
@@ -1464,9 +1443,8 @@ table_maker <- function(DAT, year=2020, category_type = NULL, LBT_data=NULL, str
             flextable_out <- fontsize(flextable_out, i = NULL, j = NULL, size = 8, part = "body")
            
             if (isTRUE(mark_low_vals)) {
-                    flextable_out <- bg(flextable_out, bg = my_color_fun)
-                    flextable_out <- bg(flextable_out, j=c(11), bg = "white")
-                    # flextable_out <- bg(flextable_out, j=c(11), bg = my_color_total_fun)
+                    flextable_out <- bg(flextable_out, bg = my_color_body_fun)
+                    flextable_out <- bg(flextable_out, j=c(11), bg = my_color_total_fun)
                     flextable_out <- bg(flextable_out, j=c(1), bg = "white")
                     # Sum column under 30 is red
                     flextable_out <- bg(flextable_out, j=c(2), bg = "white")
